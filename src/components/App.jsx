@@ -1,12 +1,24 @@
 import { useState } from "react";
 import "../blocks/App.css";
-
+import Header from "./Header";
+import Main from "./main";
+import Footer from "./footer";
 function App() {
-  //const [count, setCount] = useState(0);
-
   return (
-    <>
-      {/* <div>
+    <div className="app">
+      <Header />
+      <Main />
+      <Footer />
+    </div>
+  );
+}
+
+export default App;
+{
+  /* 
+  function App() {
+  const [count, setCount] = useState(0);
+  <div>
         <a href="https://vitejs.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
@@ -25,9 +37,5 @@ function App() {
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
-      </p> */}
-    </>
-  );
+      </p> */
 }
-
-export default App;
