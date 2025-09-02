@@ -1,0 +1,19 @@
+.weather-card {
+  background-color: #00a3ff;
+}
+.cloudy {
+}
+.sunny {
+}
+.rainy {
+}
+.snowy {
+}
+.weatherCard__temperature {
+  font-family: Cabinet Grotesk;
+  font-weight: 700;
+  font-style: Bold;
+  font-size: 36px;
+  line-height: 40px;
+  color: #ffffff;
+}

@@ -1,2 +1,32 @@
-.Header {
+.header {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 28px;
+  font-family: Cabinet Grotesk;
+  font-weight: 700;
+  font-style: Bold;
+  font-size: 20px;
+  line-height: 24px;
+}
+.header__logo {
+}
+.header__calender {
+}
+.header__location {
+  margin-left: 24px;
+}
+.header__username {
+  margin-right: 12px;
+}
+.header__add-clothes-button {
+  margin-left: auto;
+  margin-right: 20px;
+  border: none;
+  background-color: transparent;
+}
+.header__user-avatar {
+  width: 40px;
+  height: 40px;
+  margin-top: auto;
+  margin-bottom: auto;
 }
