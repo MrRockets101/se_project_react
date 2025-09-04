@@ -7,6 +7,7 @@ function Header() {
     month: "long",
     day: "numeric",
   });
+  //const location = useLocation();
 
   return (
     <header className="header">

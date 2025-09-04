@@ -1,13 +1,17 @@
 import { useState } from "react";
+
 import "../blocks/App.css";
 import Header from "./Header";
 import Main from "./main";
 import Footer from "./footer";
+import { defaultClothingItems } from "../utils/defaultClothingItems";
+
 function App() {
+  const [clothingItems, setClothingItems] = useState(defaultClothingItems);
   return (
     <div className="app">
       <Header />
-      <Main />
+      <Main clothingItems={clothingItems} />
       <Footer />
     </div>
   );
