@@ -1,4 +1,5 @@
 import "../blocks/itemModal.css";
+import handleCloseModal from "./App.jsx";
 function ItemModal({ card, isOpen }) {
   return (
     <div className={`modal${isOpen ? " modal_is-opened" : ""}`}>

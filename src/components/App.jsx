@@ -21,8 +21,7 @@ function App() {
   function handleOpenAddGarmentModal() {
     setActiveModal("item-garment-modal");
   }
-  function handleCloseModal(evt) {
-    onclick("modal__close-button");
+  function handleCloseModal() {
     setActiveModal("");
   }
 
@@ -40,11 +39,12 @@ function App() {
       <Footer />
       <ItemModal card={selectedCard} isOpen={activeModal === "item-modal"} />
 
-      <ModalWithForm>
+      <ModalWithForm
         isOpen={activeModal === "add-garment-modal"}
         title={"New garment"}
         buttonText={"Add Garment"}
         name={"add-garment-form"}
+      >
         <fieldset className="modal__fieldset">
           <label
             htmlFor="input-add-garment-name"
