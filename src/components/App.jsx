@@ -37,10 +37,14 @@ function App() {
         handleCloseModal={handleCloseModal}
       />
       <Footer />
-      <ItemModal card={selectedCard} isOpen={activeModal === "item-modal"} />
+      <ItemModal
+        card={selectedCard}
+        isOpen={activeModal === "item-modal"}
+        handleCloseModal={handleCloseModal}
+      />
 
       <ModalWithForm
-        isOpen={activeModal === "add-garment-modal"}
+        isOpen={activeModal === "item-garment-modal"}
         title={"New garment"}
         buttonText={"Add Garment"}
         name={"add-garment-form"}
@@ -80,7 +84,7 @@ function App() {
               name="weather"
               value="Hot"
             />
-            <label className="modal__label" htmlfor="Hot">
+            <label className="modal__label" htmlFor="Hot">
               Hot
             </label>
           </div>
@@ -93,7 +97,7 @@ function App() {
               name="weather"
               value="Warm"
             />
-            <label className="modal__label" htmlfor="Warm">
+            <label className="modal__label" htmlFor="Warm">
               Warm
             </label>
           </div>
@@ -106,7 +110,7 @@ function App() {
               name="weather"
               value="Cold"
             />
-            <label className="modal__label" htmlfor="Cold">
+            <label className="modal__label" htmlFor="Cold">
               Cold
             </label>
           </div>

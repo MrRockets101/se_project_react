@@ -1,7 +1,7 @@
 import logo from "../images/wtwr-logo.svg";
 import avatar from "../images/user-avatar.png";
 import "../blocks/header.css";
-function Header(handleOpenAddGarmentModal) {
+function Header({ handleOpenAddGarmentModal }) {
   const now = new Date();
   const date = now.toLocaleDateString("en-US", {
     month: "long",
