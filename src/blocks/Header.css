@@ -33,3 +33,8 @@
   margin-top: auto;
   margin-bottom: auto;
 }
+.header__user-avatar:hover {
+  background-image: url("../images/avatar-blank.png");
+  background-color: rgba(0, 0, 0, 0.2);
+  border: rgba(0, 0, 0, 0.5);
+}
