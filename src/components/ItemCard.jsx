@@ -1,4 +1,4 @@
-import "../blocks/itemCard.css";
+import "../blocks/Index.css";
 
 function ItemCard({ data, onCardClick }) {
   function handleOpenCard() {

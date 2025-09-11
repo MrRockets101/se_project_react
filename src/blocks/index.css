@@ -1,5 +1,15 @@
 @import url("../vendor/normalize.css");
 @import url("../vendor/fonts/fonts.css");
+@import url("./App.css");
+@import url("./ItemCard.css");
+@import url("./ItemModal.css");
+@import url("./Footer.css");
+@import url("./header.css");
+@import url("./pages.css");
+@import url("./Main.css");
+@import url("./WeatherCard.css");
+@import url("./card.css");
+
 /*:root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

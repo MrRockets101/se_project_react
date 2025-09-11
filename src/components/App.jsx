@@ -6,10 +6,11 @@ import Footer from "./footer";
 import { defaultClothingItems } from "../utils/defaultClothingItems";
 import ItemModal from "./ItemModal";
 import ModalWithForm from "./ModalWithForm";
-import "../blocks/itemModal.css";
+import "../blocks/Index.css";
 function App() {
   const [clothingItems, setClothingItems] = useState(defaultClothingItems);
   const [activeModal, setActiveModal] = useState("");
+  // use state -> useForm
   const [selectedCard, setSelectedCard] = useState({});
   const [selectedRadio, setSelectedRadio] = useState("");
   const [errorMessages, setErrorMessages] = useState({

@@ -21,9 +21,8 @@
 .snowy {
 } */
 .weatherCard__temperature {
-  font-family: "Cabinet Grotesk", sans-serif;
   font-weight: 700;
-  font-style: Bold;
+  font-style: bold;
   font-size: 36px;
   line-height: 1.1;
   color: #ffffff;

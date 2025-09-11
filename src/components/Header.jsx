@@ -1,6 +1,6 @@
 import logo from "../images/wtwr-logo.svg";
 import avatar from "../images/user-avatar.png";
-import "../blocks/header.css";
+import "../blocks/Index.css";
 function Header({ handleOpenAddGarmentModal }) {
   const now = new Date();
   const date = now.toLocaleDateString("en-US", {

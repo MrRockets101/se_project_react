@@ -1,7 +1,7 @@
 import WeatherCard from "./WeatherCard.jsx";
 
 import ItemCard from "./ItemCard.jsx";
-import "../blocks/Main.css";
+import "../blocks/Index.css";
 function Main({ clothingItems, handleOpenItemModal }) {
   //  let clothingItems = defaultClothingItems;
 
