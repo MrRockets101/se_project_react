@@ -5,6 +5,7 @@
   font-weight: 700;
   font-style: bold;
   font-size: 20px;
+  justify-content: space-between;
 }
 /* .header__logo {
 }
@@ -17,7 +18,7 @@
   margin-right: 12px;
 }
 .header__add-clothes-button {
-  margin-left: auto;
+  margin-left: 20px;
   margin-right: 20px;
   border: none;
   background-color: transparent;
@@ -35,4 +36,9 @@
   background-image: url("../images/avatar-blank.png");
   background-color: rgba(0, 0, 0, 0.2);
   border: rgba(0, 0, 0, 0.5);
+}
+
+.header__partition {
+  display: flex;
+  align-items: center;
 }

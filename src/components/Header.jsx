@@ -1,31 +1,41 @@
 import logo from "../images/wtwr-logo.svg";
 import avatar from "../images/user-avatar.png";
 import "../blocks/Index.css";
+import ToggleSwitch from "./toggleSwitch";
+
 function Header({ handleOpenAddGarmentModal }) {
   const now = new Date();
   const date = now.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
   });
-  //const location = useLocation();
 
   return (
     <header className="header">
-      <img src={logo} alt="WTWR Logo" className="header_logo" />
-      <p className="header__location">
-        <time className="header__calender" dateTime={now}>
-          {date}
-        </time>
-        , New York
-      </p>
-      <button
-        onClick={handleOpenAddGarmentModal}
-        className="header__add-clothes-button"
-      >
-        + Add clothes
-      </button>
-      <p className="header__username">Terrence Tegegne</p>
-      <img src={avatar} alt="User Avatar" className="header__user-avatar"></img>
+      <div className="header__partition">
+        <img src={logo} alt="WTWR Logo" className="header_logo" />
+        <p className="header__location">
+          <time className="header__calender" dateTime={now}>
+            {date}
+          </time>
+          , {weatherData.city}
+        </p>
+      </div>
+      <div className="header__partition">
+        <ToggleSwitch />
+        <button
+          onClick={handleOpenAddGarmentModal}
+          className="header__add-clothes-button"
+        >
+          + Add clothes
+        </button>
+        <p className="header__username">Terrence Tegegne</p>
+        <img
+          src={avatar}
+          alt="User Avatar"
+          className="header__user-avatar"
+        ></img>
+      </div>
     </header>
   );
 }

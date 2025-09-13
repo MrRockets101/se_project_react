@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "../blocks/App.css";
 import Header from "./Header";
 import Main from "./main";
@@ -7,10 +7,12 @@ import { defaultClothingItems } from "../utils/defaultClothingItems";
 import ItemModal from "./ItemModal";
 import ModalWithForm from "./ModalWithForm";
 import "../blocks/Index.css";
+import { getWeatherData } from "../utils/weatherApi";
+import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
+
 function App() {
-  const [clothingItems, setClothingItems] = useState(defaultClothingItems);
+  const [clothingItems, setClothingItems] = useState([]);
   const [activeModal, setActiveModal] = useState("");
-  // use state -> useForm
   const [selectedCard, setSelectedCard] = useState({});
   const [selectedRadio, setSelectedRadio] = useState("");
   const [errorMessages, setErrorMessages] = useState({
@@ -18,10 +20,15 @@ function App() {
     image: "",
     weather: "",
   });
+  const [weatherData, setWeatherData] = useState({
+    name: "No Data",
+    temp: "no Data",
+  });
   const [apiError, setApiError] = useState("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const nameInputRef = useRef(null);
   const imageInputRef = useRef(null);
+  const [currentTempUnit, setCurrentTempUnit] = useState("F");
 
   function handleOpenItemModal(card) {
     setActiveModal("item-modal");
@@ -32,7 +39,13 @@ function App() {
     setActiveModal("item-garment-modal");
     setApiError("");
   }
-
+  function handleTempUnitChange() {
+    if (currentTempUnit === "F") {
+      setCurrentTempUnit("C");
+    } else {
+      setCurrentTempUnit("F");
+    }
+  }
   function handleCloseModal() {
     setActiveModal("");
     setApiError("");
@@ -43,7 +56,7 @@ function App() {
     validateForm();
   }
 
-  const ApiCall = () => {
+  const formValidation = () => {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve("Form submitted successfully");
@@ -62,7 +75,7 @@ function App() {
     event.preventDefault();
     setApiError("");
     try {
-      const response = await ApiCall();
+      const response = await formValidation();
       console.log("Form submitted successfully:", response);
       handleCloseModal();
 
@@ -115,124 +128,155 @@ function App() {
     validateForm();
   };
 
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const data = await getWeatherData(latitude, longitude);
+            setWeatherData(data);
+          } catch (error) {
+            console.error("Error fetching weather data:", error);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }, []);
+
+  useEffect(() => {
+    setClothingItems(defaultClothingItems);
+  }, []);
+
   return (
     <div className="app">
-      <Header
-        handleOpenAddGarmentModal={handleOpenAddGarmentModal}
-        handleCloseModal={handleCloseModal}
-      />
-      <Main
-        clothingItems={clothingItems}
-        handleOpenItemModal={handleOpenItemModal}
-        handleCloseModal={handleCloseModal}
-      />
-      <Footer />
-      <ItemModal
-        card={selectedCard}
-        isOpen={activeModal === "item-modal"}
-        handleCloseModal={handleCloseModal}
-      />
-      <ModalWithForm
-        isOpen={activeModal === "item-garment-modal"}
-        title={"New garment"}
-        buttonText={"Add Garment"}
-        name={"add-garment-form"}
-        isButtonDisabled={isButtonDisabled}
-        handleSubmit={handleSubmit}
-        errorMessages={errorMessages}
-        handleCloseModal={handleCloseModal}
+      <CurrentTemperatureUnitContext.Provider
+        value={{ currentTempUnit, handleTempUnitChange }}
       >
-        <fieldset className="modal__fieldset">
-          <label
-            htmlFor="input-add-garment-name"
-            className="modal__label"
-          ></label>
-          Name
-          <input
-            id="input-add-garment-name"
-            type="text"
-            className="modal__input"
-            placeholder="Name"
-            ref={nameInputRef}
-            onChange={handleInputChange}
-          />
-          {errorMessages.name && (
-            <p className="modal__error-message">{errorMessages.name}</p>
-          )}
-          <label
-            htmlFor="input-add-garment-image"
-            className="modal__label"
-          ></label>
-          Image
-          <input
-            id="input-add-garment-image"
-            type="url"
-            className="modal__input"
-            placeholder="Image URL"
-            ref={imageInputRef}
-            onChange={handleInputChange}
-          />
-          {errorMessages.image && (
-            <p className="modal__error-message">{errorMessages.image}</p>
-          )}
-        </fieldset>
-        <fieldset className="modal__fieldset">
-          <legend className="modal__fieldset-legend">
-            Select weather type:
-          </legend>
-          <div className="modal__radio">
+        <Header
+          weatherData={weatherData}
+          handleOpenAddGarmentModal={handleOpenAddGarmentModal}
+          handleCloseModal={handleCloseModal}
+        />
+        <Main
+          weatherData={weatherData}
+          clothingItems={clothingItems}
+          handleOpenItemModal={handleOpenItemModal}
+          handleCloseModal={handleCloseModal}
+        />
+        <Footer />
+        <ItemModal
+          card={selectedCard}
+          isOpen={activeModal === "item-modal"}
+          handleCloseModal={handleCloseModal}
+        />
+        <ModalWithForm
+          isOpen={activeModal === "item-garment-modal"}
+          title={"New garment"}
+          buttonText={"Add Garment"}
+          name={"add-garment-form"}
+          isButtonDisabled={isButtonDisabled}
+          handleSubmit={handleSubmit}
+          errorMessages={errorMessages}
+          handleCloseModal={handleCloseModal}
+        >
+          <fieldset className="modal__fieldset">
+            <label
+              htmlFor="input-add-garment-name"
+              className="modal__label"
+            ></label>
+            Name
             <input
-              className="modal__input-radio"
-              type="radio"
-              id="Hot"
-              name="weather"
-              value="Hot"
-              checked={selectedRadio === "Hot"}
-              onChange={handleRadioChange}
+              id="input-add-garment-name"
+              type="text"
+              className="modal__input"
+              placeholder="Name"
+              ref={nameInputRef}
+              onChange={handleInputChange}
             />
-            <label className="modal__label" htmlFor="Hot">
-              Hot
-            </label>
-          </div>
-          <div className="modal__radio">
+            {errorMessages.name && (
+              <p className="modal__error-message">{errorMessages.name}</p>
+            )}
+            <label
+              htmlFor="input-add-garment-image"
+              className="modal__label"
+            ></label>
+            Image
             <input
-              className="modal__input-radio"
-              type="radio"
-              id="Warm"
-              name="weather"
-              value="Warm"
-              checked={selectedRadio === "Warm"}
-              onChange={handleRadioChange}
+              id="input-add-garment-image"
+              type="url"
+              className="modal__input"
+              placeholder="Image URL"
+              ref={imageInputRef}
+              onChange={handleInputChange}
             />
-            <label className="modal__label" htmlFor="Warm">
-              Warm
-            </label>
-          </div>
-          <div className="modal__radio">
-            <input
-              className="modal__input-radio"
-              type="radio"
-              id="Cold"
-              name="weather"
-              value="Cold"
-              checked={selectedRadio === "Cold"}
-              onChange={handleRadioChange}
-            />
-            <label className="modal__label" htmlFor="Cold">
-              Cold
-            </label>
-          </div>
-          {errorMessages.weather && (
-            <p className="modal__error-message">{errorMessages.weather}</p>
-          )}
-        </fieldset>
+            {errorMessages.image && (
+              <p className="modal__error-message">{errorMessages.image}</p>
+            )}
+          </fieldset>
+          <fieldset className="modal__fieldset">
+            <legend className="modal__fieldset-legend">
+              Select weather type:
+            </legend>
+            <div className="modal__radio">
+              <input
+                className="modal__input-radio"
+                type="radio"
+                id="Hot"
+                name="weather"
+                value="Hot"
+                checked={selectedRadio === "Hot"}
+                onChange={handleRadioChange}
+              />
+              <label className="modal__label" htmlFor="Hot">
+                Hot
+              </label>
+            </div>
+            <div className="modal__radio">
+              <input
+                className="modal__input-radio"
+                type="radio"
+                id="Warm"
+                name="weather"
+                value="Warm"
+                checked={selectedRadio === "Warm"}
+                onChange={handleRadioChange}
+              />
+              <label className="modal__label" htmlFor="Warm">
+                Warm
+              </label>
+            </div>
+            <div className="modal__radio">
+              <input
+                className="modal__input-radio"
+                type="radio"
+                id="Cold"
+                name="weather"
+                value="Cold"
+                checked={selectedRadio === "Cold"}
+                onChange={handleRadioChange}
+              />
+              <label className="modal__label" htmlFor="Cold">
+                Cold
+              </label>
+            </div>
+            {errorMessages.weather && (
+              <p className="modal__error-message">{errorMessages.weather}</p>
+            )}
+          </fieldset>
 
-        {apiError && (
-          <p className="modal__error-message modal__error-message_api">
-            {apiError}
-          </p>
-        )}
-      </ModalWithForm>
+          {apiError && (
+            <p className="modal__error-message modal__error-message_api">
+              {apiError}
+            </p>
+          )}
+        </ModalWithForm>
+      </CurrentTemperatureUnitContext.Provider>
     </div>
   );
 }

@@ -1,14 +1,20 @@
 import cloudy from "../images/cloudy.png";
-// import sunny from "../images/sunny.png";
-// import rainy from "../images/rainy.png";
-// import snowy from "../images/snowy.png";
 import "../blocks/Index.css";
-function WeatherCard({ temperature, condition }) {
+import { useContext } from "react";
+import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
+
+function WeatherCard({ weatherData }) {
+  const { currentTempUnit } = useContext(CurrentTemperatureUnitContext);
+
   return (
     <section className="weatherCard">
       <img src={cloudy} alt="Cloudy Weather" className="weatherCard__image" />
-      <p className="weatherCard__temperature">75°F</p>
+      <p className="weatherCard__temperature">
+        {weatherData.temp[contextValue.currentTempUnit]}&deg;
+        {currentTempUnit}
+      </p>
     </section>
   );
 }
+
 export default WeatherCard;

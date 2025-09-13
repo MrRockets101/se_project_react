@@ -9,7 +9,7 @@
 @import url("./Main.css");
 @import url("./WeatherCard.css");
 @import url("./card.css");
-
+@import url("./ToggleSwitch.css");
 /*:root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
