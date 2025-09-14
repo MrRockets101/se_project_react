@@ -1,11 +1,12 @@
 @import url("./vendor/normalize.css");
 @import url("./vendor/fonts/fonts.css");
-@import url("./blocks/itemCard.css");
+@import url("./blocks/ItemCard.css");
 @import url("./blocks/itemModal.css");
 @import url("./blocks/footer.css");
-@import url("./blocks/header.css");
+@import url("./blocks/Header.css");
 @import url("./blocks/page.css");
 @import url("./blocks/main.css");
 @import url("./blocks/WeatherCard.css");
 @import url("./blocks/App.css");
 @import url("./blocks/ToggleSwitch.css");
+@import url("./blocks/card.css");
