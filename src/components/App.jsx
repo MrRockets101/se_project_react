@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import "../blocks/App.css";
 import Header from "./Header";
 import Main from "./main";
@@ -153,6 +153,18 @@ function App() {
     setClothingItems(defaultClothingItems);
   }, []);
 
+  function getWeatherCategory(temp) {
+    if (temp >= 75) return "hot";
+    if (temp >= 60) return "warm";
+    return "cold";
+  }
+
+  const temp = weatherData.temp[currentTempUnit];
+  const tempCategory = getWeatherCategory(temp);
+  const filteredClothingItems = clothingItems.filter(
+    (item) => item.weather.toLowerCase() === tempCategory
+  );
+
   return (
     <div className="app">
       <CurrentTemperatureUnitContext.Provider
@@ -165,7 +177,8 @@ function App() {
         />
         <Main
           weatherData={weatherData}
-          clothingItems={clothingItems}
+          clothingItems={filteredClothingItems}
+          tempCategory={tempCategory}
           handleOpenItemModal={handleOpenItemModal}
           handleCloseModal={handleCloseModal}
         />

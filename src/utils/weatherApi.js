@@ -4,16 +4,22 @@ export function getWeatherData(latitude, longitude) {
   const weatherApiUrl = getWeatherApiUrl(latitude, longitude);
   return fetch(weatherApiUrl)
     .then((res) => {
-      res.ok
-        ? res.json()
-        : Promise.reject(`Error from weather API: ${res.status}`);
+      if (!res.ok) {
+        throw new Error(`Weather API error: ${res.status}`);
+      }
+      return res.json();
     })
     .then((data) => {
+      console.log("Raw weather data:", data);
       return parseWeatherData(data);
     });
 }
 
 function parseWeatherData(data) {
+  if (!data || !data.name || !data.main || typeof data.main.temp !== "number") {
+    throw new Error("Invalid weather data structure");
+  }
+
   const parsedData = { temp: {} };
 
   parsedData.city = data.name;

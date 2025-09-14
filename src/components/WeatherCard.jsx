@@ -10,8 +10,7 @@ function WeatherCard({ weatherData }) {
     <section className="weatherCard">
       <img src={cloudy} alt="Cloudy Weather" className="weatherCard__image" />
       <p className="weatherCard__temperature">
-        {weatherData.temp[contextValue.currentTempUnit]}&deg;
-        {currentTempUnit}
+        {weatherData.temp[currentTempUnit]}&deg;{currentTempUnit}
       </p>
     </section>
   );

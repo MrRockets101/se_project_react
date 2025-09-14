@@ -3,7 +3,7 @@ import avatar from "../images/user-avatar.png";
 import "../blocks/Index.css";
 import ToggleSwitch from "./toggleSwitch";
 
-function Header({ handleOpenAddGarmentModal }) {
+function Header({ weatherData, handleOpenAddGarmentModal }) {
   const now = new Date();
   const date = now.toLocaleDateString("en-US", {
     month: "long",
