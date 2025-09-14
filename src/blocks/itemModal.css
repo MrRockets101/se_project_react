@@ -128,14 +128,15 @@
   cursor: pointer;
 }
 
-.modal__input-radio:checked + .modal__label {
-  color: #000000;
-}
-.modal__input-radio:not(:checked) + .modal__label {
-  color: #00000080;
-}
-
 .modal__error-message {
   margin-top: 20px;
   color: #ff4d00;
+}
+
+.modal__radio_selected .modal__label {
+  color: #000000;
+}
+
+.modal__radio:not(.modal__radio_selected) .modal__label {
+  color: #00000080;
 }

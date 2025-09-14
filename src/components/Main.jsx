@@ -3,16 +3,20 @@ import WeatherCard from "./WeatherCard.jsx";
 import ItemCard from "./ItemCard.jsx";
 import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
 import { getTempCategory } from "../utils/getTempCategory";
+import { userPreferenceArray } from "../utils/userPreferenceArray";
 
 function Main({ clothingItems, handleOpenItemModal, weatherData }) {
   const { currentTempUnit } = useContext(CurrentTemperatureUnitContext);
 
   const temp = weatherData?.temp?.[currentTempUnit];
-
-  const tempCategory = getTempCategory(temp, currentTempUnit);
+  const tempCategory = getTempCategory(
+    temp,
+    currentTempUnit,
+    userPreferenceArray
+  );
 
   const filteredItems = clothingItems.filter(
-    (item) => item.weather?.toLowerCase() === tempCategory
+    (item) => item.weather.toLowerCase() === tempCategory
   );
 
   console.log("TEMP:", temp);

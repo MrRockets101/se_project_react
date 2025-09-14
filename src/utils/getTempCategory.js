@@ -1,17 +1,24 @@
-export function getTempCategory(temp, unit) {
+import { userPreferenceArray } from "./userPreferenceArray";
+
+export function getTempCategory(temp, unit, userPreferenceArray) {
   if (typeof temp !== "number") return "unknown";
 
-  if (unit === "F") {
-    if (temp >= 75) return "hot";
-    if (temp >= 60) return "warm";
-    return "cold";
+  const unitConfig = userPreferenceArray.find((config) => config.unit === unit);
+  if (!unitConfig) return "unknown";
+
+  const sortedCategories = [...unitConfig.categories].sort(
+    (a, b) => a.threshold - b.threshold
+  );
+
+  let currentCategory = sortedCategories[0].name;
+
+  for (const { name, threshold } of sortedCategories) {
+    if (temp >= threshold) {
+      currentCategory = name;
+    } else {
+      break;
+    }
   }
 
-  if (unit === "C") {
-    if (temp >= 24) return "hot";
-    if (temp >= 16) return "warm";
-    return "cold";
-  }
-
-  return "unknown";
+  return currentCategory;
 }

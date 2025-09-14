@@ -9,6 +9,7 @@ import ModalWithForm from "./ModalWithForm";
 import "../blocks/Index.css";
 import { getWeatherData } from "../utils/weatherApi";
 import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
+import { userPreferenceArray } from "../utils/userPreferenceArray";
 import { getTempCategory } from "../utils/getTempCategory";
 
 function App() {
@@ -34,10 +35,18 @@ function App() {
   const imageInputRef = useRef(null);
   const [currentTempUnit, setCurrentTempUnit] = useState("F");
   const temp = weatherData.temp[currentTempUnit];
-  const tempCategory = getTempCategory(temp, currentTempUnit);
-  const filteredClothingItems = clothingItems.filter(
-    (item) => item.weather.toLowerCase() === tempCategory
+  const tempCategory = getTempCategory(
+    temp,
+    currentTempUnit,
+    userPreferenceArray
   );
+  const filteredClothingItems = clothingItems.filter(
+    (item) => item.weather.toLowerCase() === tempCategory.toLowerCase()
+  );
+  const unitConfig = userPreferenceArray.find(
+    (config) => config.unit === currentTempUnit
+  );
+  const categories = unitConfig ? unitConfig.categories : [];
 
   function handleOpenItemModal(card) {
     setActiveModal("item-modal");
@@ -61,7 +70,7 @@ function App() {
   }
 
   function handleRadioChange(event) {
-    setSelectedRadio(event.target.value);
+    setSelectedRadio(event.target.value.toLowerCase());
     validateForm();
   }
 
@@ -233,48 +242,33 @@ function App() {
             <legend className="modal__fieldset-legend">
               Select weather type:
             </legend>
-            <div className="modal__radio">
-              <input
-                className="modal__input-radio"
-                type="radio"
-                id="Hot"
-                name="weather"
-                value="Hot"
-                checked={selectedRadio === "Hot"}
-                onChange={handleRadioChange}
-              />
-              <label className="modal__label" htmlFor="Hot">
-                Hot
-              </label>
-            </div>
-            <div className="modal__radio">
-              <input
-                className="modal__input-radio"
-                type="radio"
-                id="Warm"
-                name="weather"
-                value="Warm"
-                checked={selectedRadio === "Warm"}
-                onChange={handleRadioChange}
-              />
-              <label className="modal__label" htmlFor="Warm">
-                Warm
-              </label>
-            </div>
-            <div className="modal__radio">
-              <input
-                className="modal__input-radio"
-                type="radio"
-                id="Cold"
-                name="weather"
-                value="Cold"
-                checked={selectedRadio === "Cold"}
-                onChange={handleRadioChange}
-              />
-              <label className="modal__label" htmlFor="Cold">
-                Cold
-              </label>
-            </div>
+
+            {categories.map(({ name }) => {
+              const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+              const isSelected = selectedRadio === name.toLowerCase();
+              return (
+                <div
+                  key={name}
+                  className={`modal__radio ${
+                    isSelected ? "modal__radio_selected" : ""
+                  }`}
+                >
+                  <input
+                    className="modal__input-radio"
+                    type="radio"
+                    id={name}
+                    name="weather"
+                    value={name.toLowerCase()}
+                    checked={selectedRadio === name.toLowerCase()}
+                    onChange={handleRadioChange}
+                  />
+                  <label className="modal__label" htmlFor={name}>
+                    {capitalized}
+                  </label>
+                </div>
+              );
+            })}
+
             {errorMessages.weather && (
               <p className="modal__error-message">{errorMessages.weather}</p>
             )}
