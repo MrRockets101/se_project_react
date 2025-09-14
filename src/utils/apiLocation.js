@@ -1,32 +1,38 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 
 const LocationComponent = () => {
   const [location, setLocation] = useState(null);
-  const [error, setError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
-    const fetchLocation = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/api/location");
-        setLocation(response.data);
-      } catch (err) {
-        setError(err.response.data.error);
-      }
-    };
+    if (!navigator.geolocation) {
+      setErrorMessage("Please enable Geolocation support for your browser");
+      return;
+    }
 
-    fetchLocation();
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setErrorMessage(null);
+      },
+      (error) => {
+        setErrorMessage(error.message);
+      }
+    );
   }, []);
 
   return (
     <div>
       {location ? (
-        <div>
+        <>
           <p>Latitude: {location.latitude}</p>
           <p>Longitude: {location.longitude}</p>
-        </div>
+        </>
       ) : (
-        <p>{error || "Failed to acquire location..."}</p>
+        <p>{errorMessage || "failed to acquire location "}</p>
       )}
     </div>
   );

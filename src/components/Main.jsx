@@ -5,7 +5,12 @@ import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
 import { getTempCategory } from "../utils/getTempCategory";
 import { userPreferenceArray } from "../utils/userPreferenceArray";
 
-function Main({ clothingItems, handleOpenItemModal, weatherData }) {
+function Main({
+  clothingItems,
+  handleOpenItemModal,
+  weatherData,
+  apiWeatherError,
+}) {
   const { currentTempUnit } = useContext(CurrentTemperatureUnitContext);
 
   const temp = weatherData?.temp?.[currentTempUnit];
@@ -29,7 +34,10 @@ function Main({ clothingItems, handleOpenItemModal, weatherData }) {
 
   return (
     <main className="main">
-      <WeatherCard weatherData={weatherData} />
+      <WeatherCard
+        weatherData={weatherData}
+        apiWeatherError={apiWeatherError}
+      />
       <p className="main__text">
         Today is a {tempCategory} {temp}°{currentTempUnit} / You may want to
         wear:

@@ -1,5 +1,7 @@
 import { getWeatherApiUrl } from "./constants";
 
+import { getWeatherCondition } from "./getWeatherCondition";
+
 export function getWeatherData(latitude, longitude) {
   const weatherApiUrl = getWeatherApiUrl(latitude, longitude);
   return fetch(weatherApiUrl)
@@ -16,15 +18,38 @@ export function getWeatherData(latitude, longitude) {
 }
 
 function parseWeatherData(data) {
-  if (!data || !data.name || !data.main || typeof data.main.temp !== "number") {
+  if (
+    !data ||
+    !data.name ||
+    !data.main ||
+    typeof data.main.temp !== "number" ||
+    !data.sys ||
+    !data.weather ||
+    !data.weather[0]
+  ) {
     throw new Error("Invalid weather data structure");
   }
 
-  const parsedData = { temp: {} };
+  const weatherCode = data.weather[0].id;
+  const condition = getWeatherCondition(weatherCode);
 
-  parsedData.city = data.name;
-  parsedData.temp.F = Math.round(data.main.temp);
-  parsedData.temp.C = Math.round(((data.main.temp - 32) * 5) / 9);
+  const currentTime = Math.floor((Date.now() / 1000) * 60);
+  const sunriseMin = Math.floor(data.sys.sunrise / 60);
+  const sunsetMin = Math.floor(data.sys.sunset / 60);
+  const isDayTime =
+    currentTime >= data.sys.sunrise && currentTime < data.sys.sunset;
+  const timeOfDay = isDayTime ? "day" : "night";
 
-  return parsedData;
+  return {
+    city: data.name,
+    temp: {
+      F: Math.round(data.main.temp),
+      C: Math.round(((data.main.temp - 32) * 5) / 9),
+    },
+    weatherCode,
+    condition,
+    sunrise: data.sys.sunrise,
+    sunset: data.sys.sunset,
+    timeOfDay,
+  };
 }

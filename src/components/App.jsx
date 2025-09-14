@@ -47,6 +47,8 @@ function App() {
     (config) => config.unit === currentTempUnit
   );
   const categories = unitConfig ? unitConfig.categories : [];
+  const [apiLocationError, setApiLocationError] = useState(null);
+  const [apiWeatherError, setApiWeatherError] = useState(null);
 
   function handleOpenItemModal(card) {
     setActiveModal("item-modal");
@@ -147,24 +149,33 @@ function App() {
   };
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    const fetchLocationAndWeather = () => {
+      if (!navigator.geolocation) {
+        setApiLocationError("Geolocation is not supported by your browser");
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition(
         async (position) => {
-          const { latitude, longitude } = position.coords;
           try {
+            const { latitude, longitude } = position.coords;
             const data = await getWeatherData(latitude, longitude);
             setWeatherData(data);
+            setApiLocationError(null);
+            setApiWeatherError(null);
           } catch (error) {
             console.error("Error fetching weather data:", error);
+            setApiWeatherError(error.message || "Failed to fetch weather data");
           }
         },
         (error) => {
-          console.error("Error getting location:", error);
+          console.error("Geolocation error:", error);
+          setApiLocationError(error.message || "Failed to get location");
         }
       );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
-    }
+    };
+
+    fetchLocationAndWeather();
   }, []);
 
   useEffect(() => {
@@ -180,6 +191,7 @@ function App() {
           weatherData={weatherData}
           handleOpenAddGarmentModal={handleOpenAddGarmentModal}
           handleCloseModal={handleCloseModal}
+          apiLocationError={apiLocationError}
         />
         <Main
           weatherData={weatherData}
@@ -187,6 +199,7 @@ function App() {
           tempCategory={tempCategory}
           handleOpenItemModal={handleOpenItemModal}
           handleCloseModal={handleCloseModal}
+          apiWeatherError={apiWeatherError}
         />
         <Footer />
         <ItemModal

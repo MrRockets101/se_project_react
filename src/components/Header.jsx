@@ -3,7 +3,12 @@ import avatar from "../images/user-avatar.png";
 import "../blocks/Index.css";
 import ToggleSwitch from "./toggleSwitch";
 
-function Header({ weatherData, handleOpenAddGarmentModal }) {
+function Header({
+  weatherData,
+  handleOpenAddGarmentModal,
+  apiLocationError,
+  apiWeatherError,
+}) {
   const now = new Date();
   const date = now.toLocaleDateString("en-US", {
     month: "long",
@@ -19,6 +24,9 @@ function Header({ weatherData, handleOpenAddGarmentModal }) {
             {date}
           </time>
           , {weatherData.city}
+          {apiLocationError && (
+            <p className="error-message">Location error: {apiLocationError}</p>
+          )}
         </p>
       </div>
       <div className="header__partition">
@@ -30,11 +38,7 @@ function Header({ weatherData, handleOpenAddGarmentModal }) {
           + Add clothes
         </button>
         <p className="header__username">Terrence Tegegne</p>
-        <img
-          src={avatar}
-          alt="User Avatar"
-          className="header__user-avatar"
-        ></img>
+        <img src={avatar} alt="User Avatar" className="header__user-avatar" />
       </div>
     </header>
   );
