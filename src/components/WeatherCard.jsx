@@ -1,6 +1,6 @@
 import "../blocks/Index.css";
 import { useContext } from "react";
-import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
+import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext";
 
 import { weatherImages } from "../utils/weatherImages";
 

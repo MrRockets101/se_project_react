@@ -8,7 +8,7 @@ import ItemModal from "./ItemModal";
 import ModalWithForm from "./ModalWithForm";
 import "../blocks/Index.css";
 import { getWeatherData } from "../utils/weatherApi";
-import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
+import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext";
 import { userPreferenceArray } from "../utils/userPreferenceArray";
 import { getTempCategory } from "../utils/getTempCategory";
 
