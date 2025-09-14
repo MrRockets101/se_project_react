@@ -1,6 +1,6 @@
 import logo from "../images/wtwr-logo.svg";
 import avatar from "../images/user-avatar.png";
-import "../blocks/Index.css";
+import "../index.css";
 import ToggleSwitch from "./toggleSwitch";
 
 function Header({

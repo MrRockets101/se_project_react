@@ -1,4 +1,4 @@
-import "../blocks/Index.css";
+import "../index.css";
 import { useContext } from "react";
 import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext";
 

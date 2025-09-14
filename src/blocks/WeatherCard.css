@@ -12,14 +12,7 @@
   object-fit: cover;
   object-position: right top;
 }
-/* .cloudy {
-}
-.sunny {
-}
-.rainy {
-}
-.snowy {
-} */
+
 .weatherCard__temperature {
   font-weight: 700;
   font-style: bold;

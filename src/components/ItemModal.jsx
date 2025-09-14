@@ -1,4 +1,4 @@
-import "../blocks/Index.css";
+import "../index.css";
 
 function ItemModal({ card, isOpen, handleCloseModal }) {
   return (

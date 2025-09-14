@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import "../blocks/Index.css";
+import "../index.css";
 function ModalWithForm({
   isOpen,
   children,

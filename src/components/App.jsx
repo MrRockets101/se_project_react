@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import "../blocks/App.css";
+
 import Header from "./Header";
 import Main from "./main";
 import Footer from "./footer";
 import { defaultClothingItems } from "../utils/defaultClothingItems";
 import ItemModal from "./ItemModal";
 import ModalWithForm from "./ModalWithForm";
-import "../blocks/Index.css";
+import "../index.css";
 import { getWeatherData } from "../utils/weatherApi";
 import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext";
 import { userPreferenceArray } from "../utils/userPreferenceArray";
