@@ -9,6 +9,7 @@ import ModalWithForm from "./ModalWithForm";
 import "../blocks/Index.css";
 import { getWeatherData } from "../utils/weatherApi";
 import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
+import { getTempCategory } from "../utils/getTempCategory";
 
 function App() {
   const [clothingItems, setClothingItems] = useState([]);
@@ -32,6 +33,11 @@ function App() {
   const nameInputRef = useRef(null);
   const imageInputRef = useRef(null);
   const [currentTempUnit, setCurrentTempUnit] = useState("F");
+  const temp = weatherData.temp[currentTempUnit];
+  const tempCategory = getTempCategory(temp, currentTempUnit);
+  const filteredClothingItems = clothingItems.filter(
+    (item) => item.weather.toLowerCase() === tempCategory
+  );
 
   function handleOpenItemModal(card) {
     setActiveModal("item-modal");
@@ -155,18 +161,6 @@ function App() {
   useEffect(() => {
     setClothingItems(defaultClothingItems);
   }, []);
-
-  function getWeatherCategory(temp) {
-    if (temp >= 75) return "hot";
-    if (temp >= 60) return "warm";
-    return "cold";
-  }
-
-  const temp = weatherData.temp[currentTempUnit];
-  const tempCategory = getWeatherCategory(temp);
-  const filteredClothingItems = clothingItems.filter(
-    (item) => item.weather.toLowerCase() === tempCategory
-  );
 
   return (
     <div className="app">

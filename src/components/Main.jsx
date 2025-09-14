@@ -1,36 +1,33 @@
+import React, { useContext } from "react";
 import WeatherCard from "./WeatherCard.jsx";
 import ItemCard from "./ItemCard.jsx";
-import "../blocks/Index.css";
-import { useContext } from "react";
 import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
+import { getTempCategory } from "../utils/getTempCategory";
 
 function Main({ clothingItems, handleOpenItemModal, weatherData }) {
   const { currentTempUnit } = useContext(CurrentTemperatureUnitContext);
 
-  const temp = weatherData.temp[currentTempUnit];
-  let tempCategory = "";
+  const temp = weatherData?.temp?.[currentTempUnit];
 
-  if (typeof temp === "number") {
-    if (currentTempUnit === "F") {
-      if (temp >= 86) tempCategory = "hot";
-      else if (temp >= 66) tempCategory = "warm";
-      else tempCategory = "cold";
-    } else {
-      if (temp >= 30) tempCategory = "hot";
-      else if (temp >= 19) tempCategory = "warm";
-      else tempCategory = "cold";
-    }
-  }
+  const tempCategory = getTempCategory(temp, currentTempUnit);
 
   const filteredItems = clothingItems.filter(
-    (item) => item.weather.toLowerCase() === tempCategory
+    (item) => item.weather?.toLowerCase() === tempCategory
+  );
+
+  console.log("TEMP:", temp);
+  console.log("UNIT:", currentTempUnit);
+  console.log("CATEGORY:", tempCategory);
+  console.log(
+    "MATCHING ITEMS:",
+    filteredItems.map((i) => i.weather)
   );
 
   return (
     <main className="main">
       <WeatherCard weatherData={weatherData} />
       <p className="main__text">
-        Today is a {tempCategory} {temp}&deg;{currentTempUnit} / You may want to
+        Today is a {tempCategory} {temp}°{currentTempUnit} / You may want to
         wear:
       </p>
       <ul className="main__card-list">
