@@ -31,8 +31,9 @@ function App() {
   });
   const [apiError, setApiError] = useState("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const nameInputRef = useRef(null);
-  const imageInputRef = useRef(null);
+  const [nameInput, setNameInput] = useState("");
+  const [imageInput, setImageInput] = useState("");
+
   const [currentTempUnit, setCurrentTempUnit] = useState("F");
   const temp = weatherData.temp[currentTempUnit];
   const tempCategory = getTempCategory(
@@ -84,11 +85,11 @@ function App() {
     });
   };
   const resetForm = () => {
+    setNameInput("");
+    setImageInput("");
     setSelectedRadio("");
     setErrorMessages({ name: "", image: "", weather: "" });
     setIsButtonDisabled(true);
-    if (nameInputRef.current) nameInputRef.current.value = "";
-    if (imageInputRef.current) imageInputRef.current.value = "";
   };
 
   const handleSubmit = async (event) => {
@@ -98,9 +99,8 @@ function App() {
       const response = await formValidation();
       console.log("Form submitted successfully:", response);
       handleCloseModal();
-
-      setSelectedRadio("");
       resetForm();
+      setSelectedRadio("");
     } catch (error) {
       console.error("Error submitting form:", error);
 
@@ -108,33 +108,34 @@ function App() {
     }
   };
 
-  const validateForm = useCallback(() => {
-    const nameInput = nameInputRef.current;
-    const imageInput = imageInputRef.current;
-    let isValid = true;
-    const errors = {
-      name: "",
-      image: "",
-      weather: "",
-    };
+  const validateForm = useCallback(
+    (name = nameInput, image = imageInput, radio = selectedRadio) => {
+      let isValid = true;
+      const errors = {
+        name: "",
+        image: "",
+        weather: "",
+      };
 
-    if (!nameInput?.value) {
-      errors.name = "Name is required.";
-      isValid = false;
-    }
-    if (!imageInput?.value) {
-      errors.image = "Image URL is required.";
-      isValid = false;
-    }
-    if (!selectedRadio) {
-      errors.weather = "Please select a weather type.";
-      isValid = false;
-    }
+      if (!name) {
+        errors.name = "Name is required.";
+        isValid = false;
+      }
+      if (!image) {
+        errors.image = "Image URL is required.";
+        isValid = false;
+      }
+      if (!radio) {
+        errors.weather = "Please select a weather type.";
+        isValid = false;
+      }
 
-    setErrorMessages(errors);
-    setIsButtonDisabled(!isValid);
-    return isValid;
-  }, [selectedRadio]);
+      setErrorMessages(errors);
+      setIsButtonDisabled(!isValid);
+      return isValid;
+    },
+    [nameInput, imageInput, selectedRadio]
+  );
 
   useEffect(() => {
     if (activeModal === "item-garment-modal") {
@@ -228,8 +229,11 @@ function App() {
               type="text"
               className="modal__input"
               placeholder="Name"
-              ref={nameInputRef}
-              onChange={handleInputChange}
+              value={nameInput}
+              onChange={(e) => {
+                setNameInput(e.target.value);
+                validateForm(e.target.value, imageInput, selectedRadio);
+              }}
             />
             {errorMessages.name && (
               <p className="modal__error-message">{errorMessages.name}</p>
@@ -244,8 +248,11 @@ function App() {
               type="url"
               className="modal__input"
               placeholder="Image URL"
-              ref={imageInputRef}
-              onChange={handleInputChange}
+              value={imageInput}
+              onChange={(e) => {
+                setImageInput(e.target.value);
+                validateForm(nameInput, e.target.value, selectedRadio);
+              }}
             />
             {errorMessages.image && (
               <p className="modal__error-message">{errorMessages.image}</p>
@@ -273,7 +280,10 @@ function App() {
                     name="weather"
                     value={name.toLowerCase()}
                     checked={selectedRadio === name.toLowerCase()}
-                    onChange={handleRadioChange}
+                    onChange={(e) => {
+                      setSelectedRadio(e.target.value);
+                      validateForm(nameInput, imageInput, e.target.value);
+                    }}
                   />
                   <label className="modal__label" htmlFor={name}>
                     {capitalized}
