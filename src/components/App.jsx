@@ -21,8 +21,11 @@ function App() {
     weather: "",
   });
   const [weatherData, setWeatherData] = useState({
-    name: "No Data",
-    temp: "no Data",
+    city: "Unknown",
+    temp: {
+      F: "--",
+      C: "--",
+    },
   });
   const [apiError, setApiError] = useState("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
