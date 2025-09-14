@@ -1,4 +1,4 @@
-import cloudy from "../images/cloudy.png";
+import cloudy from "../images/Day-Cloudy.png";
 import "../blocks/Index.css";
 import { useContext } from "react";
 import CurrentTemperatureUnitContext from "./CurrentTemperatureUnitContext";
