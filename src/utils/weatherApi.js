@@ -33,9 +33,8 @@ function parseWeatherData(data) {
   const weatherCode = data.weather[0].id;
   const condition = getWeatherCondition(weatherCode);
 
-  const currentTime = Math.floor((Date.now() / 1000) * 60);
-  const sunriseMin = Math.floor(data.sys.sunrise / 60);
-  const sunsetMin = Math.floor(data.sys.sunset / 60);
+  const currentTime = Math.floor(Date.now() / 1000);
+
   const isDayTime =
     currentTime >= data.sys.sunrise && currentTime < data.sys.sunset;
   const timeOfDay = isDayTime ? "day" : "night";
