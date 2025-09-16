@@ -184,15 +184,18 @@ function App() {
 
       try {
         coords = await tryNavigatorGeolocation();
+        setApiLocationError(null);
       } catch (error) {
         setApiLocationError(
-          "Location permission denied. Enable location for more accurate results."
+          "For best accuracy, please enable browser location."
         );
         try {
           coords = await getClientIpGeolocation();
+          setApiLocationError(null);
         } catch {
           try {
             coords = await getServerIpGeolocation();
+            setApiLocationError(null);
           } catch {
             coords = DEFAULT_COORDS;
             setApiLocationError("Using default location");
@@ -204,6 +207,10 @@ function App() {
         const data = await getWeatherData(coords.latitude, coords.longitude);
         setWeatherData(data);
         setApiWeatherError(null);
+
+        if (data.city && data.city !== "Unknown") {
+          setApiLocationError(null);
+        }
       } catch (error) {
         console.error("Weather fetch error:", error);
         setApiWeatherError("Failed to fetch weather for your location.");

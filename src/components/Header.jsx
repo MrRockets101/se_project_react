@@ -24,11 +24,8 @@ function Header({
             {date}
           </time>
           , {weatherData.city}
-          {apiLocationError && (
-            <p className="error-message">
-              Location error: {apiLocationError}. For best accuracy, please
-              enable browser location.
-            </p>
+          {apiLocationError && weatherData.city === "Unknown" && (
+            <p className="error-message">{apiLocationError}.</p>
           )}
         </p>
       </div>
@@ -46,4 +43,5 @@ function Header({
     </header>
   );
 }
+
 export default Header;
