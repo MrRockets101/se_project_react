@@ -25,7 +25,10 @@ function Header({
           </time>
           , {weatherData.city}
           {apiLocationError && (
-            <p className="error-message">Location error: {apiLocationError}</p>
+            <p className="error-message">
+              Location error: {apiLocationError}. For best accuracy, please
+              enable browser location.
+            </p>
           )}
         </p>
       </div>

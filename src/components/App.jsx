@@ -11,6 +11,10 @@ import { getWeatherData } from "../utils/weatherApi";
 import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext";
 import { userPreferenceArray } from "../utils/userPreferenceArray";
 import { getTempCategory } from "../utils/getTempCategory";
+import {
+  getClientIpGeolocation,
+  getServerIpGeolocation,
+} from "../utils/ipGeolocation";
 
 function App() {
   const [clothingItems, setClothingItems] = useState([]);
@@ -50,6 +54,11 @@ function App() {
   const categories = unitConfig ? unitConfig.categories : [];
   const [apiLocationError, setApiLocationError] = useState(null);
   const [apiWeatherError, setApiWeatherError] = useState(null);
+  const DEFAULT_COORDS = {
+    latitude: 46.226667,
+    longitude: 6.140556,
+    source: "default",
+  };
 
   function handleOpenItemModal(card) {
     setActiveModal("item-modal");
@@ -150,30 +159,55 @@ function App() {
   };
 
   useEffect(() => {
-    const fetchLocationAndWeather = () => {
-      if (!navigator.geolocation) {
-        setApiLocationError("Geolocation is not supported by your browser");
-        return;
+    const fetchLocationAndWeather = async () => {
+      let coords = null;
+
+      const tryNavigatorGeolocation = () =>
+        new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error("Geolocation not supported"));
+          } else {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                resolve({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  source: "navigator",
+                });
+              },
+              (error) => {
+                reject(error);
+              }
+            );
+          }
+        });
+
+      try {
+        coords = await tryNavigatorGeolocation();
+      } catch (error) {
+        setApiLocationError(
+          "Location permission denied. Enable location for more accurate results."
+        );
+        try {
+          coords = await getClientIpGeolocation();
+        } catch {
+          try {
+            coords = await getServerIpGeolocation();
+          } catch {
+            coords = DEFAULT_COORDS;
+            setApiLocationError("Using default location");
+          }
+        }
       }
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            const data = await getWeatherData(latitude, longitude);
-            setWeatherData(data);
-            setApiLocationError(null);
-            setApiWeatherError(null);
-          } catch (error) {
-            console.error("Error fetching weather data:", error);
-            setApiWeatherError(error.message || "Failed to fetch weather data");
-          }
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          setApiLocationError(error.message || "Failed to get location");
-        }
-      );
+      try {
+        const data = await getWeatherData(coords.latitude, coords.longitude);
+        setWeatherData(data);
+        setApiWeatherError(null);
+      } catch (error) {
+        console.error("Weather fetch error:", error);
+        setApiWeatherError("Failed to fetch weather for your location.");
+      }
     };
 
     fetchLocationAndWeather();
