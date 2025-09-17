@@ -15,6 +15,8 @@ import {
   getClientIpGeolocation,
   getServerIpGeolocation,
 } from "../utils/ipGeolocation";
+import Dashboard from "./Dashboard";
+import { Route, Routes } from "react-router-dom";
 
 function App() {
   const [clothingItems, setClothingItems] = useState([]);
@@ -235,14 +237,23 @@ function App() {
           handleCloseModal={handleCloseModal}
           apiLocationError={apiLocationError}
         />
-        <Main
-          weatherData={weatherData}
-          clothingItems={filteredClothingItems}
-          tempCategory={tempCategory}
-          handleOpenItemModal={handleOpenItemModal}
-          handleCloseModal={handleCloseModal}
-          apiWeatherError={apiWeatherError}
-        />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Main
+                weatherData={weatherData}
+                clothingItems={filteredClothingItems}
+                tempCategory={tempCategory}
+                handleOpenItemModal={handleOpenItemModal}
+                handleCloseModal={handleCloseModal}
+                apiWeatherError={apiWeatherError}
+              />
+            }
+          />
+          <Route path="/profile" element={<div>PROFILE</div>} />
+        </Routes>
+
         <Footer />
         <ItemModal
           card={selectedCard}
