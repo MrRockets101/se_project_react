@@ -16,6 +16,7 @@
 }
 .header__username {
   margin-right: 12px;
+  display: inline;
 }
 .header__add-clothes-button {
   margin-left: 20px;
@@ -43,4 +44,13 @@
 .header__partition {
   display: flex;
   align-items: center;
+}
+
+.header__profile-link {
+  display: flex;
+  text-decoration: none;
+  color: #000;
+}
+
+.header__logo-link {
 }
