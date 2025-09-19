@@ -2,13 +2,19 @@ import "../index.css";
 import ClothesSection from "./ClothesSection";
 import SideBar from "./SideBar";
 
-function Profile({ defaultClothingItems }) {
+function Profile({
+  clothingItems,
+  handleOpenItemModal,
+  handleOpenAddGarmentModal,
+}) {
   return (
     <div className="profile">
-      <SideBar />{" "}
+      <SideBar />
       <ClothesSection
-        defaultClothingItems={defaultClothingItems}
+        clothingItems={clothingItems}
         isProfile={true}
+        handleOpenItemModal={handleOpenItemModal}
+        handleOpenAddGarmentModal={handleOpenAddGarmentModal}
       />
     </div>
   );

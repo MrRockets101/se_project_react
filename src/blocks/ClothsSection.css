@@ -15,10 +15,12 @@
 .clothes-section__button-add-new {
   color: rgba(0, 0, 0, 0.6);
   border: none;
+  background-color: transparent;
 }
 
 .clothes-section__button-add-new:hover {
   cursor: pointer;
+  color: rgba(0, 0, 0, 0.9);
 }
 
 .clothes-section__card-list {

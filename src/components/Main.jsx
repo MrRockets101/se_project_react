@@ -2,8 +2,6 @@ import React, { useContext } from "react";
 import WeatherCard from "./WeatherCard.jsx";
 import ItemCard from "./ItemCard.jsx";
 import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext.js";
-import { getTempCategory } from "../utils/getTempCategory";
-import { userPreferenceArray } from "../utils/userPreferenceArray";
 
 function Main({
   clothingItems,
@@ -14,23 +12,6 @@ function Main({
   const { currentTempUnit } = useContext(CurrentTemperatureUnitContext);
 
   const temp = weatherData?.temp?.[currentTempUnit];
-  const tempCategory = getTempCategory(
-    temp,
-    currentTempUnit,
-    userPreferenceArray
-  );
-
-  const filteredItems = clothingItems.filter(
-    (item) => item.weather.toLowerCase() === tempCategory
-  );
-
-  console.log("TEMP:", temp);
-  console.log("UNIT:", currentTempUnit);
-  console.log("CATEGORY:", tempCategory);
-  console.log(
-    "MATCHING ITEMS:",
-    filteredItems.map((i) => i.weather)
-  );
 
   return (
     <main className="main">
@@ -39,11 +20,10 @@ function Main({
         apiWeatherError={apiWeatherError}
       />
       <p className="main__text">
-        Today is a {tempCategory} {temp}°{currentTempUnit} / You may want to
-        wear:
+        Today is {temp}°{currentTempUnit} / You may want to wear:
       </p>
       <ul className="main__card-list">
-        {filteredItems.map((item) => (
+        {clothingItems.map((item) => (
           <ItemCard
             key={item._id}
             data={item}

@@ -27,6 +27,10 @@
   font-style: bold;
   font-size: 20px;
 }
+.header__add-clothes-button:hover {
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.3);
+}
 .header__user-avatar {
   width: 40px;
   height: 40px;

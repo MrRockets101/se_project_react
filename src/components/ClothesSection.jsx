@@ -2,18 +2,24 @@ import "../index.css";
 import ItemCard from "./ItemCard.jsx";
 
 function ClothesSection({
-  defaultClothingItems,
+  clothingItems,
   handleOpenItemModal,
+  handleOpenAddGarmentModal,
   isProfile,
 }) {
   return (
     <section className="clothes-section">
       <div className="clothes-section__row">
         Your items
-        <button className="clothes-section__button-add-new">+ Add new</button>
+        <button
+          className="clothes-section__button-add-new"
+          onClick={handleOpenAddGarmentModal}
+        >
+          + Add new
+        </button>
       </div>
       <ul className="clothes-section__card-list">
-        {defaultClothingItems.map((item) => (
+        {clothingItems.map((item) => (
           <ItemCard
             key={item._id}
             data={item}

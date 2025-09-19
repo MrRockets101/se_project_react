@@ -13,7 +13,7 @@ function ItemCard({ data, onCardClick, isProfile }) {
     <li className="card">
       <h2 className="card__title">{data.name}</h2>
       <img
-        src={data.link}
+        src={data.imageUrl}
         alt={data.name}
         className={imageClassName}
         onClick={handleOpenCard}
@@ -21,3 +21,4 @@ function ItemCard({ data, onCardClick, isProfile }) {
     </li>
   );
 }
+export default ItemCard;

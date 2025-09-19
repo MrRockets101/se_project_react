@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import { getItems, addItem } from "../utils/api";
+import { useForm } from "../hooks/useForm";
 import Profile from "./Profile";
 import Header from "./Header";
 //import main from "../main";
 import Main from "./Main";
 import Footer from "./footer";
-import { defaultClothingItems } from "../utils/defaultClothingItems";
+//import { defaultClothingItems } from "../utils/defaultClothingItems";
 import ItemModal from "./ItemModal";
 import ModalWithForm from "./ModalWithForm";
 import "../index.css";
@@ -18,13 +20,18 @@ import {
   getServerIpGeolocation,
 } from "../utils/ipGeolocation";
 //import Dashboard from "./Dashboard";
+import AddItemModal from "./AddItemModal";
 import { Route, Routes } from "react-router-dom";
 
 function App() {
   const [clothingItems, setClothingItems] = useState([]);
   const [activeModal, setActiveModal] = useState("");
   const [selectedCard, setSelectedCard] = useState({});
-  const [selectedRadio, setSelectedRadio] = useState("");
+  const { values, handleChange, setValues } = useForm({
+    name: "",
+    image: "",
+    weather: "",
+  });
   const [errorMessages, setErrorMessages] = useState({
     name: "",
     image: "",
@@ -39,8 +46,6 @@ function App() {
   });
   const [apiError, setApiError] = useState("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const [nameInput, setNameInput] = useState("");
-  const [imageInput, setImageInput] = useState("");
 
   const [currentTempUnit, setCurrentTempUnit] = useState("F");
   const temp = weatherData.temp[currentTempUnit];
@@ -85,11 +90,6 @@ function App() {
     setApiError("");
   }
 
-  function handleRadioChange(event) {
-    setSelectedRadio(event.target.value.toLowerCase());
-    validateForm();
-  }
-
   const formValidation = () => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -98,69 +98,79 @@ function App() {
     });
   };
   const resetForm = () => {
-    setNameInput("");
-    setImageInput("");
-    setSelectedRadio("");
+    setValues({ name: "", image: "", weather: "" });
     setErrorMessages({ name: "", image: "", weather: "" });
     setIsButtonDisabled(true);
+  };
+
+  const generateUniqueId = () => {
+    if (clothingItems.length === 0) return "1";
+
+    const numericIds = clothingItems
+      .map((item) => parseInt(item._id))
+      .filter((id) => !isNaN(id));
+
+    const maxId = Math.max(...numericIds);
+    return (maxId + 1).toString();
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setApiError("");
+
+    if (!validateForm()) return;
+
     try {
       const response = await formValidation();
       console.log("Form submitted successfully:", response);
+
+      const newItem = {
+        _id: generateUniqueId(),
+        name: values.name,
+        imageUrl: values.image,
+        weather: values.weather.toLowerCase(),
+      };
+
+      const savedItem = await addItem(newItem);
+      setClothingItems((prevItems) => [...prevItems, savedItem]);
+
       handleCloseModal();
       resetForm();
-      setSelectedRadio("");
     } catch (error) {
-      console.error("Error submitting form:", error);
-
-      setApiError(error.message || "An error occurred during submission.");
+      console.error("Failed to submit:", error);
+      setApiError(error.message || "Failed to submit.");
     }
   };
 
-  const validateForm = useCallback(
-    (name = nameInput, image = imageInput, radio = selectedRadio) => {
-      let isValid = true;
-      const errors = {
-        name: "",
-        image: "",
-        weather: "",
-      };
+  const validateForm = useCallback(() => {
+    let isValid = true;
+    const errors = { name: "", image: "", weather: "" };
 
-      if (!name) {
-        errors.name = "Name is required.";
-        isValid = false;
-      }
-      if (!image) {
-        errors.image = "Image URL is required.";
-        isValid = false;
-      }
-      if (!radio) {
-        errors.weather = "Please select a weather type.";
-        isValid = false;
-      }
+    if (!values.name) {
+      errors.name = "Name is required.";
+      isValid = false;
+    }
 
-      setErrorMessages(errors);
-      setIsButtonDisabled(!isValid);
-      return isValid;
-    },
-    [nameInput, imageInput, selectedRadio]
-  );
+    if (!values.image) {
+      errors.image = "Image URL is required.";
+      isValid = false;
+    }
+
+    if (!values.weather) {
+      errors.weather = "Please select a weather type.";
+      isValid = false;
+    }
+
+    setErrorMessages(errors);
+    setIsButtonDisabled(!isValid);
+    return isValid;
+  }, [values]);
 
   useEffect(() => {
     if (activeModal === "item-garment-modal") {
       validateForm();
-    } else {
-      resetForm();
     }
-  }, [activeModal, selectedRadio]);
-
-  const handleInputChange = () => {
-    validateForm();
-  };
+  }, [values, activeModal]);
 
   useEffect(() => {
     const fetchLocationAndWeather = async () => {
@@ -225,7 +235,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    setClothingItems(defaultClothingItems);
+    getItems()
+      .then((items) => {
+        console.log("Fetched items:", items);
+        setClothingItems(items);
+      })
+      .catch(console.error);
   }, []);
 
   return (
@@ -254,8 +269,14 @@ function App() {
             }
           />
           <Route
-            path="/profile"
-            element={<Profile defaultClothingItems={defaultClothingItems} />}
+            path="/Profile"
+            element={
+              <Profile
+                clothingItems={clothingItems}
+                handleOpenItemModal={handleOpenItemModal}
+                handleOpenAddGarmentModal={handleOpenAddGarmentModal}
+              />
+            }
           />
         </Routes>
 
@@ -276,45 +297,39 @@ function App() {
           handleCloseModal={handleCloseModal}
         >
           <fieldset className="modal__fieldset">
-            <label
-              htmlFor="input-add-garment-name"
-              className="modal__label"
-            ></label>
-            Name
+            <label htmlFor="input-add-garment-name" className="modal__label">
+              Name
+            </label>
             <input
               id="input-add-garment-name"
               type="text"
               className="modal__input"
+              name="name"
               placeholder="Name"
-              value={nameInput}
-              onChange={(e) => {
-                setNameInput(e.target.value);
-                validateForm(e.target.value, imageInput, selectedRadio);
-              }}
+              value={values.name}
+              onChange={handleChange}
             />
             {errorMessages.name && (
               <p className="modal__error-message">{errorMessages.name}</p>
             )}
-            <label
-              htmlFor="input-add-garment-image"
-              className="modal__label"
-            ></label>
-            Image
+
+            <label htmlFor="input-add-garment-image" className="modal__label">
+              Image
+            </label>
             <input
               id="input-add-garment-image"
               type="url"
               className="modal__input"
+              name="image"
               placeholder="Image URL"
-              value={imageInput}
-              onChange={(e) => {
-                setImageInput(e.target.value);
-                validateForm(nameInput, e.target.value, selectedRadio);
-              }}
+              value={values.image}
+              onChange={handleChange}
             />
             {errorMessages.image && (
               <p className="modal__error-message">{errorMessages.image}</p>
             )}
           </fieldset>
+
           <fieldset className="modal__fieldset">
             <legend className="modal__fieldset-legend">
               Select weather type:
@@ -322,7 +337,9 @@ function App() {
 
             {categories.map(({ name }) => {
               const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-              const isSelected = selectedRadio === name.toLowerCase();
+              const value = name.toLowerCase();
+              const isSelected = values.weather === value;
+
               return (
                 <div
                   key={name}
@@ -335,12 +352,9 @@ function App() {
                     type="radio"
                     id={name}
                     name="weather"
-                    value={name.toLowerCase()}
-                    checked={selectedRadio === name.toLowerCase()}
-                    onChange={(e) => {
-                      setSelectedRadio(e.target.value);
-                      validateForm(nameInput, imageInput, e.target.value);
-                    }}
+                    value={value}
+                    checked={isSelected}
+                    onChange={handleChange}
                   />
                   <label className="modal__label" htmlFor={name}>
                     {capitalized}
@@ -348,7 +362,6 @@ function App() {
                 </div>
               );
             })}
-
             {errorMessages.weather && (
               <p className="modal__error-message">{errorMessages.weather}</p>
             )}
@@ -360,6 +373,7 @@ function App() {
             </p>
           )}
         </ModalWithForm>
+        {/* <AddItemModal isOpen={activeModal ==="item-garment-modal" }/> */}
       </CurrentTemperatureUnitContext.Provider>
     </div>
   );
