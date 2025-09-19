@@ -1,0 +1,16 @@
+.sidebar__block {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 16px;
+}
+
+.sidebar__user-avatar {
+  width: 40px;
+  height: 40px;
+}
+
+.header__username {
+  display: inline;
+  color: rgba(0, 0, 0, 1);
+}

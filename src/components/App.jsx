@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import Profile from "./Profile";
 import Header from "./Header";
-import Main from "./main";
+//import main from "../main";
+import Main from "./Main";
 import Footer from "./footer";
 import { defaultClothingItems } from "../utils/defaultClothingItems";
 import ItemModal from "./ItemModal";
@@ -15,7 +17,7 @@ import {
   getClientIpGeolocation,
   getServerIpGeolocation,
 } from "../utils/ipGeolocation";
-import Dashboard from "./Dashboard";
+//import Dashboard from "./Dashboard";
 import { Route, Routes } from "react-router-dom";
 
 function App() {
@@ -251,7 +253,10 @@ function App() {
               />
             }
           />
-          <Route path="/profile" element={<div>PROFILE</div>} />
+          <Route
+            path="/profile"
+            element={<Profile defaultClothingItems={defaultClothingItems} />}
+          />
         </Routes>
 
         <Footer />

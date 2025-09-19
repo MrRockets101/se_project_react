@@ -1,19 +1,23 @@
 import "../index.css";
 
-function ItemCard({ data, onCardClick }) {
+function ItemCard({ data, onCardClick, isProfile }) {
   function handleOpenCard() {
     onCardClick(data);
   }
+
+  const imageClassName = `card__image${
+    isProfile ? " clothes-section__card-image" : ""
+  }`;
+
   return (
     <li className="card">
       <h2 className="card__title">{data.name}</h2>
       <img
         src={data.link}
         alt={data.name}
-        className="card__image"
+        className={imageClassName}
         onClick={handleOpenCard}
       />
     </li>
   );
 }
-export default ItemCard;
