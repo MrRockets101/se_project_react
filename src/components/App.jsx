@@ -286,94 +286,21 @@ function App() {
           isOpen={activeModal === "item-modal"}
           handleCloseModal={handleCloseModal}
         />
-        <ModalWithForm
+
+        <AddItemModal
           isOpen={activeModal === "item-garment-modal"}
-          title={"New garment"}
-          buttonText={"Add Garment"}
-          name={"add-garment-form"}
-          isButtonDisabled={isButtonDisabled}
+          title="Add New Garment"
+          buttonText="Add Garment"
+          name="add-garment-form"
           handleSubmit={handleSubmit}
-          errorMessages={errorMessages}
           handleCloseModal={handleCloseModal}
-        >
-          <fieldset className="modal__fieldset">
-            <label htmlFor="input-add-garment-name" className="modal__label">
-              Name
-            </label>
-            <input
-              id="input-add-garment-name"
-              type="text"
-              className="modal__input"
-              name="name"
-              placeholder="Name"
-              value={values.name}
-              onChange={handleChange}
-            />
-            {errorMessages.name && (
-              <p className="modal__error-message">{errorMessages.name}</p>
-            )}
-
-            <label htmlFor="input-add-garment-image" className="modal__label">
-              Image
-            </label>
-            <input
-              id="input-add-garment-image"
-              type="url"
-              className="modal__input"
-              name="image"
-              placeholder="Image URL"
-              value={values.image}
-              onChange={handleChange}
-            />
-            {errorMessages.image && (
-              <p className="modal__error-message">{errorMessages.image}</p>
-            )}
-          </fieldset>
-
-          <fieldset className="modal__fieldset">
-            <legend className="modal__fieldset-legend">
-              Select weather type:
-            </legend>
-
-            {categories.map(({ name }) => {
-              const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-              const value = name.toLowerCase();
-              const isSelected = values.weather === value;
-
-              return (
-                <div
-                  key={name}
-                  className={`modal__radio ${
-                    isSelected ? "modal__radio_selected" : ""
-                  }`}
-                >
-                  <input
-                    className="modal__input-radio"
-                    type="radio"
-                    id={name}
-                    name="weather"
-                    value={value}
-                    checked={isSelected}
-                    onChange={handleChange}
-                  />
-                  <label className="modal__label" htmlFor={name}>
-                    {capitalized}
-                  </label>
-                </div>
-              );
-            })}
-            {errorMessages.weather && (
-              <p className="modal__error-message">{errorMessages.weather}</p>
-            )}
-          </fieldset>
-
-          {apiError && (
-            <p className="modal__error-message modal__error-message_api">
-              {apiError}
-            </p>
-          )}
-        </ModalWithForm>
-        {/* <AddItemModal isOpen={activeModal ==="item-garment-modal" }/> */}
+          isButtonDisabled={isButtonDisabled}
+          errorMessages={errorMessages}
+          values={values}
+          handleChange={handleChange}
+          apiError={apiError}
+          categories={categories}
+        />
       </CurrentTemperatureUnitContext.Provider>
     </div>
   );
