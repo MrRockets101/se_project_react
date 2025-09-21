@@ -49,6 +49,9 @@
   width: 16px;
   border: none;
 }
+.modal__close-button:hover {
+  cursor: pointer;
+}
 .modal__footer {
   background-color: #fff;
   padding: 20px 0 12px 32px;
