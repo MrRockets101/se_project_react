@@ -14,7 +14,7 @@ import { getTempCategory } from "../utils/getTempCategory";
 import AddItemModal from "./AddItemModal";
 import { Route, Routes } from "react-router-dom";
 import { useWeatherLocation } from "../hooks/useWeatherLocation";
-import { useFormValidation } from "../hooks/useFormValidation";
+
 import LocationModal from "./LocationModal";
 
 function App() {
@@ -83,7 +83,7 @@ function App() {
   };
   const [itemToDelete, setItemToDelete] = useState(null);
   const handleDeleteItem = (card) => {
-    setItemToDelete(card); // store item to delete
+    setItemToDelete(card);
     setActiveModal("confirm-delete");
   };
   const handleConfirmDelete = async () => {
@@ -101,18 +101,7 @@ function App() {
       alert("Failed to delete item.");
     }
   };
-  const {
-    values,
-    errors: errorMessages,
-    handleChange,
-    validate,
-    resetForm,
-    isButtonDisabled,
-  } = useFormValidation({
-    name: "",
-    image: "",
-    weather: "",
-  });
+
   function handleOpenItemModal(card) {
     setActiveModal("item-modal");
     setSelectedCard(card);
@@ -161,12 +150,6 @@ function App() {
       setApiError(error.message || "Failed to submit.");
     }
   };
-
-  useEffect(() => {
-    if (activeModal === "item-garment-modal") {
-      validate();
-    }
-  }, [values, activeModal]);
 
   useEffect(() => {
     getItems()
@@ -228,15 +211,26 @@ function App() {
           title="Add New Garment"
           buttonText="Add Garment"
           name="add-garment-form"
-          handleSubmit={handleSubmit}
+          handleSubmit={async (values) => {
+            const newItem = {
+              _id: generateUniqueId(),
+              name: values.name,
+              imageUrl: values.image,
+              weather: values.weather.toLowerCase(),
+            };
+
+            try {
+              const savedItem = await addItem(newItem);
+              setClothingItems((prevItems) => [...prevItems, savedItem]);
+            } catch (error) {
+              console.error("Failed to submit:", error);
+            }
+          }}
           handleCloseModal={handleCloseModal}
-          isButtonDisabled={isButtonDisabled}
-          errorMessages={errorMessages}
-          values={values}
-          handleChange={handleChange}
           apiError={apiError}
           categories={categories}
         />
+
         <ConfirmDeleteModal
           isOpen={activeModal === "confirm-delete"}
           onClose={handleCloseModal}
