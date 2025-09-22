@@ -49,7 +49,7 @@ function Header({
         >
           + Add clothes
         </button>
-        <Link to="/Profile" className="header__profile-link">
+        <Link to="/profile" className="header__profile-link">
           <p className="header__username">Terrence Tegegne</p>
           <img src={avatar} alt="User Avatar" className="header__user-avatar" />
         </Link>
