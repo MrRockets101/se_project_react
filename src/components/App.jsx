@@ -141,7 +141,7 @@ function App() {
       };
 
       const savedItem = await addItem(newItem);
-      setClothingItems((prevItems) => [...prevItems, savedItem]);
+      setClothingItems((prevItems) => [savedItem, ...prevItems]);
 
       handleCloseModal();
       resetForm();
