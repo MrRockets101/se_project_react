@@ -1,6 +1,15 @@
 import { getWeatherApiUrl } from "./constants";
-import { getWeatherCondition } from "./getWeatherCondition";
 import { fetchJson } from "./fetchJson";
+import { weatherConditionArray } from "./weatherConditionArray";
+
+function getWeatherCondition(weatherCode) {
+  for (let entry of weatherConditionArray) {
+    if (entry.codes.includes(weatherCode)) {
+      return entry.category;
+    }
+  }
+  return "unknown";
+}
 
 export function getWeatherData(latitude, longitude) {
   const url = getWeatherApiUrl(latitude, longitude);
@@ -9,6 +18,7 @@ export function getWeatherData(latitude, longitude) {
     return parseWeatherData(data);
   });
 }
+
 function parseWeatherData(data) {
   return {
     name: data.name || "Unknown location",
