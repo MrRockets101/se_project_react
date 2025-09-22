@@ -9,6 +9,7 @@ function Header({
   handleOpenAddGarmentModal,
   apiLocationError,
   apiWeatherError,
+  handleOpenLocationModal,
 }) {
   const now = new Date();
   const date = now.toLocaleDateString("en-US", {
@@ -19,14 +20,22 @@ function Header({
   return (
     <header className="header">
       <div className="header__partition">
-        {/* <link to="/homepage" className="header__logo-link"> */}
-        <img src={logo} alt="WTWR Logo" className="header_logo" />
-        {/* </link> */}
+        <Link to="/" className="header__logo-link">
+          <img src={logo} alt="WTWR Logo" className="header_logo" />
+        </Link>
+
         <p className="header__location">
           <time className="header__calender" dateTime={now}>
             {date}
           </time>
-          , {weatherData.city}
+          ,{" "}
+          <button
+            className="header__location-button"
+            onClick={handleOpenLocationModal}
+            aria-label="Change location"
+          >
+            {weatherData.city}
+          </button>
           {apiLocationError && weatherData.city === "Unknown" && (
             <p className="error-message">{apiLocationError}.</p>
           )}

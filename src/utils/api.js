@@ -21,4 +21,19 @@ function addItem(newItem) {
   );
 }
 
-export { getItems, addItem };
+const deleteItem = async (id) => {
+  const response = await fetch(`${baseUrlJson}/items/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete item");
+  }
+
+  return true;
+};
+
+export { getItems, addItem, deleteItem };

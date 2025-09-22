@@ -1,51 +1,43 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-import { getItems, addItem } from "../utils/api";
-import { useForm } from "../hooks/useForm";
+import { getItems, addItem, deleteItem } from "../utils/api";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Profile from "./Profile";
 import Header from "./Header";
-//import main from "../main";
 import Main from "./Main";
 import Footer from "./footer";
-//import { defaultClothingItems } from "../utils/defaultClothingItems";
 import ItemModal from "./ItemModal";
-import ModalWithForm from "./ModalWithForm";
 import "../index.css";
-import { getWeatherData } from "../utils/weatherApi";
 import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext";
 import { userPreferenceArray } from "../utils/userPreferenceArray";
 import { getTempCategory } from "../utils/getTempCategory";
-import {
-  getClientIpGeolocation,
-  getServerIpGeolocation,
-} from "../utils/ipGeolocation";
-//import Dashboard from "./Dashboard";
 import AddItemModal from "./AddItemModal";
 import { Route, Routes } from "react-router-dom";
+import { useWeatherLocation } from "../hooks/useWeatherLocation";
+import { useFormValidation } from "../hooks/useFormValidation";
+import LocationModal from "./LocationModal";
 
 function App() {
   const [clothingItems, setClothingItems] = useState([]);
   const [activeModal, setActiveModal] = useState("");
   const [selectedCard, setSelectedCard] = useState({});
-  const { values, handleChange, setValues } = useForm({
-    name: "",
-    image: "",
-    weather: "",
-  });
-  const [errorMessages, setErrorMessages] = useState({
-    name: "",
-    image: "",
-    weather: "",
-  });
-  const [weatherData, setWeatherData] = useState({
-    city: "Unknown",
-    temp: {
-      F: "--",
-      C: "--",
-    },
-  });
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
+
+  const handleOpenLocationModal = () => setLocationModalOpen(true);
+  const handleCloseLocationModal = () => setLocationModalOpen(false);
+  const handleUpdateLocation = async ({ latitude, longitude }) => {
+    try {
+      await updateLocation({ latitude, longitude });
+      setLocationModalOpen(false);
+    } catch (error) {
+      setApiLocationError("Failed to update location.");
+    }
+  };
+
+  const { weatherData, apiWeatherError, apiLocationError, updateLocation } =
+    useWeatherLocation();
+
   const [apiError, setApiError] = useState("");
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
   const [currentTempUnit, setCurrentTempUnit] = useState("F");
   const temp = weatherData.temp[currentTempUnit];
@@ -60,15 +52,62 @@ function App() {
   const unitConfig = userPreferenceArray.find(
     (config) => config.unit === currentTempUnit
   );
-  const categories = unitConfig ? unitConfig.categories : [];
-  const [apiLocationError, setApiLocationError] = useState(null);
-  const [apiWeatherError, setApiWeatherError] = useState(null);
-  const DEFAULT_COORDS = {
-    latitude: 46.226667,
-    longitude: 6.140556,
-    source: "default",
-  };
 
+  const prevTempUnit = useRef();
+
+  useEffect(() => {
+    if (prevTempUnit.current && prevTempUnit.current !== currentTempUnit) {
+      console.log(
+        `Temp unit changed from ${prevTempUnit.current} to ${currentTempUnit}`
+      );
+    }
+    prevTempUnit.current = currentTempUnit;
+  }, [currentTempUnit]);
+
+  const categories = unitConfig ? unitConfig.categories : [];
+
+  const generateUniqueId = () => {
+    if (clothingItems.length === 0) return "1";
+
+    const numericIds = clothingItems
+      .map((item) => parseInt(item._id))
+      .filter((id) => !isNaN(id));
+
+    const maxId = Math.max(...numericIds);
+    return (maxId + 1).toString();
+  };
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const handleDeleteItem = (card) => {
+    setItemToDelete(card); // store item to delete
+    setActiveModal("confirm-delete");
+  };
+  const handleConfirmDelete = async () => {
+    try {
+      console.log("Deleting item with ID:", itemToDelete?._id, itemToDelete);
+
+      await deleteItem(itemToDelete._id);
+      setClothingItems((prev) =>
+        prev.filter((item) => item._id !== itemToDelete._id)
+      );
+      setItemToDelete(null);
+      handleCloseModal();
+    } catch (err) {
+      console.error("Failed to delete item", err);
+      alert("Failed to delete item.");
+    }
+  };
+  const {
+    values,
+    errors: errorMessages,
+    handleChange,
+    validate,
+    resetForm,
+    isButtonDisabled,
+  } = useFormValidation({
+    name: "",
+    image: "",
+    weather: "",
+  });
   function handleOpenItemModal(card) {
     setActiveModal("item-modal");
     setSelectedCard(card);
@@ -90,35 +129,11 @@ function App() {
     setApiError("");
   }
 
-  const formValidation = () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve("Form submitted successfully");
-      }, 1000);
-    });
-  };
-  const resetForm = () => {
-    setValues({ name: "", image: "", weather: "" });
-    setErrorMessages({ name: "", image: "", weather: "" });
-    setIsButtonDisabled(true);
-  };
-
-  const generateUniqueId = () => {
-    if (clothingItems.length === 0) return "1";
-
-    const numericIds = clothingItems
-      .map((item) => parseInt(item._id))
-      .filter((id) => !isNaN(id));
-
-    const maxId = Math.max(...numericIds);
-    return (maxId + 1).toString();
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setApiError("");
 
-    if (!validateForm()) return;
+    if (!validate()) return;
 
     try {
       const response = await formValidation();
@@ -142,97 +157,11 @@ function App() {
     }
   };
 
-  const validateForm = useCallback(() => {
-    let isValid = true;
-    const errors = { name: "", image: "", weather: "" };
-
-    if (!values.name) {
-      errors.name = "Name is required.";
-      isValid = false;
-    }
-
-    if (!values.image) {
-      errors.image = "Image URL is required.";
-      isValid = false;
-    }
-
-    if (!values.weather) {
-      errors.weather = "Please select a weather type.";
-      isValid = false;
-    }
-
-    setErrorMessages(errors);
-    setIsButtonDisabled(!isValid);
-    return isValid;
-  }, [values]);
-
   useEffect(() => {
     if (activeModal === "item-garment-modal") {
-      validateForm();
+      validate();
     }
   }, [values, activeModal]);
-
-  useEffect(() => {
-    const fetchLocationAndWeather = async () => {
-      let coords = null;
-
-      const tryNavigatorGeolocation = () =>
-        new Promise((resolve, reject) => {
-          if (!navigator.geolocation) {
-            reject(new Error("Geolocation not supported"));
-          } else {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                resolve({
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                  source: "navigator",
-                });
-              },
-              (error) => {
-                reject(error);
-              }
-            );
-          }
-        });
-
-      try {
-        coords = await tryNavigatorGeolocation();
-        setApiLocationError(null);
-      } catch (error) {
-        setApiLocationError(
-          "For best accuracy, please enable browser location."
-        );
-        try {
-          coords = await getClientIpGeolocation();
-          setApiLocationError(null);
-        } catch {
-          try {
-            coords = await getServerIpGeolocation();
-            setApiLocationError(null);
-          } catch {
-            coords = DEFAULT_COORDS;
-            setApiLocationError("Using default location");
-          }
-        }
-      }
-
-      try {
-        const data = await getWeatherData(coords.latitude, coords.longitude);
-        setWeatherData(data);
-        setApiWeatherError(null);
-
-        if (data.city && data.city !== "Unknown") {
-          setApiLocationError(null);
-        }
-      } catch (error) {
-        console.error("Weather fetch error:", error);
-        setApiWeatherError("Failed to fetch weather for your location.");
-      }
-    };
-
-    fetchLocationAndWeather();
-  }, []);
 
   useEffect(() => {
     getItems()
@@ -253,6 +182,7 @@ function App() {
           handleOpenAddGarmentModal={handleOpenAddGarmentModal}
           handleCloseModal={handleCloseModal}
           apiLocationError={apiLocationError}
+          handleOpenLocationModal={handleOpenLocationModal}
         />
         <Routes>
           <Route
@@ -285,6 +215,7 @@ function App() {
           card={selectedCard}
           isOpen={activeModal === "item-modal"}
           handleCloseModal={handleCloseModal}
+          handleDeleteItem={handleDeleteItem}
         />
 
         <AddItemModal
@@ -301,6 +232,17 @@ function App() {
           apiError={apiError}
           categories={categories}
         />
+        <ConfirmDeleteModal
+          isOpen={activeModal === "confirm-delete"}
+          onClose={handleCloseModal}
+          onConfirm={handleConfirmDelete}
+        />
+        {locationModalOpen && (
+          <LocationModal
+            onClose={handleCloseLocationModal}
+            onUpdateLocation={handleUpdateLocation}
+          />
+        )}
       </CurrentTemperatureUnitContext.Provider>
     </div>
   );

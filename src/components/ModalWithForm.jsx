@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import "../index.css";
+import { useModalClose } from "../hooks/useModalClose";
 
 function ModalWithForm({
   isOpen,
@@ -17,29 +18,7 @@ function ModalWithForm({
 }) {
   const modalRef = useRef(null);
 
-  useEffect(() => {
-    const handleOverlayClose = (event) => {
-      const escKey = event.type === "keydown" && event.key === "Escape";
-      const offClick =
-        event.type === "mousedown" &&
-        modalRef.current &&
-        !modalRef.current.contains(event.target);
-
-      if (escKey || offClick) {
-        handleCloseModal();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleOverlayClose);
-      document.addEventListener("mousedown", handleOverlayClose);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleOverlayClose);
-      document.removeEventListener("mousedown", handleOverlayClose);
-    };
-  }, [isOpen, handleCloseModal]);
+  useModalClose(isOpen, modalRef, handleCloseModal);
 
   return (
     <div
@@ -55,7 +34,6 @@ function ModalWithForm({
           onClick={handleCloseModal}
         ></button>
         <form onSubmit={handleSubmit} className="modal__form" name={name}>
-          {/* Fieldset 1: Name & Image */}
           <fieldset className="modal__fieldset">
             <label htmlFor="input-add-garment-name" className="modal__label">
               Name
@@ -90,7 +68,6 @@ function ModalWithForm({
             )}
           </fieldset>
 
-          {/* Fieldset 2: Weather Options */}
           <fieldset className="modal__fieldset">
             <legend className="modal__fieldset-legend">
               Select weather type:
@@ -127,14 +104,12 @@ function ModalWithForm({
             )}
           </fieldset>
 
-          {/* API Error */}
           {apiError && (
             <p className="modal__error-message modal__error-message_api">
               {apiError}
             </p>
           )}
 
-          {/* Submit */}
           <button
             className="modal__submit-button"
             type="submit"

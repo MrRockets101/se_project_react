@@ -12,6 +12,7 @@ function ItemCard({ data, onCardClick, isProfile }) {
   return (
     <li className="card">
       <h2 className="card__title">{data.name}</h2>
+
       <img
         src={data.imageUrl}
         alt={data.name}
