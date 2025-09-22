@@ -25,7 +25,7 @@ function Header({
         </Link>
 
         <p className="header__location">
-          <time className="header__calender" dateTime={now}>
+          <time className="header__calender" dateTime={now.toISOString()}>
             {date}
           </time>
           ,{" "}
@@ -34,9 +34,9 @@ function Header({
             onClick={handleOpenLocationModal}
             aria-label="Change location"
           >
-            {weatherData.city}
+            {weatherData?.name || "Unknown location"}
           </button>
-          {apiLocationError && weatherData.city === "Unknown" && (
+          {apiLocationError && weatherData?.city === "Unknown" && (
             <p className="error-message">{apiLocationError}.</p>
           )}
         </p>

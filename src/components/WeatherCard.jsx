@@ -7,7 +7,7 @@ import { weatherImages } from "../utils/weatherImages";
 function WeatherCard({ weatherData, apiWeatherError }) {
   const { currentTempUnit } = useContext(CurrentTemperatureUnitContext);
 
-  const { condition = "clear", timeOfDay = "day" } = weatherData;
+  const { condition = "clear", timeOfDay = "day" } = weatherData || {};
 
   const weatherImage =
     weatherImages[timeOfDay]?.[condition] || weatherImages.day.clear;
@@ -24,7 +24,9 @@ function WeatherCard({ weatherData, apiWeatherError }) {
       >
         {apiWeatherError
           ? `Weather error: ${apiWeatherError}`
-          : `${weatherData.temp[currentTempUnit]}° ${currentTempUnit}`}
+          : weatherData && weatherData.temp
+          ? `${weatherData.temp[currentTempUnit]}° ${currentTempUnit}`
+          : "Loading..."}
       </p>
     </section>
   );

@@ -58,3 +58,16 @@
 
 .header__logo-link {
 }
+
+.header__location-button {
+  border-style: none;
+  background-color: transparent;
+  font-weight: 700;
+  font-style: bold;
+  font-size: 20px;
+}
+
+.header__location-button:hover {
+  cursor: pointer;
+  opacity: 0.3;
+}

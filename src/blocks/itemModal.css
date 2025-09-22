@@ -204,3 +204,43 @@
   cursor: pointer;
   opacity: 0.3;
 }
+
+.modal__container__location {
+  background-color: #fff;
+  padding: 50px;
+  gap: 24px;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal__button-location {
+  background-color: rgba(0, 0, 0, 1);
+  border: 1px;
+  border-radius: 4px;
+  color: #fff;
+  padding: 8px 16px;
+}
+
+.modal__button-location:hover {
+  cursor: pointer;
+  background-color: rgb(0, 0, 0, 0.6);
+}
+.modal__button-location-find {
+  background-color: rgba(0, 0, 0, 1);
+  border: 1px;
+  border-radius: 4px;
+  color: #fff;
+  padding: 8px 16px;
+  margin: auto;
+}
+.modal__button-location-find:hover {
+  cursor: pointer;
+  cursor: pointer;
+  background-color: rgb(0, 0, 0, 0.6);
+}
+.modal__form-location {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}

@@ -1,27 +1,26 @@
+import { fetchJson } from "./fetchJson";
+
 const baseUrlJson = "http://localhost:3001";
 
 function getItems() {
-  return fetch(`${baseUrlJson}/items`).then((res) => {
-    if (!res.ok) {
-      return Promise.reject(`Error fetching items: ${res.status}`);
-    }
-    return res.json();
-  });
+  return fetchJson(`${baseUrlJson}/items`, {}, "Error fetching items");
 }
 
 function addItem(newItem) {
-  return fetch(`${baseUrlJson}/items`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  return fetchJson(
+    `${baseUrlJson}/items`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newItem),
     },
-    body: JSON.stringify(newItem),
-  }).then((res) =>
-    res.ok ? res.json() : Promise.reject(`Error adding item: ${res.status}`)
+    "Error adding item"
   );
 }
 
-const deleteItem = async (id) => {
+async function deleteItem(id) {
   const response = await fetch(`${baseUrlJson}/items/${id}`, {
     method: "DELETE",
     headers: {
@@ -34,6 +33,6 @@ const deleteItem = async (id) => {
   }
 
   return true;
-};
+}
 
 export { getItems, addItem, deleteItem };

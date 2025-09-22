@@ -29,7 +29,7 @@ function App() {
     try {
       await updateLocation({ latitude, longitude });
       setLocationModalOpen(false);
-    } catch (error) {
+    } catch {
       setApiLocationError("Failed to update location.");
     }
   };
@@ -40,15 +40,20 @@ function App() {
   const [apiError, setApiError] = useState("");
 
   const [currentTempUnit, setCurrentTempUnit] = useState("F");
-  const temp = weatherData.temp[currentTempUnit];
-  const tempCategory = getTempCategory(
-    temp,
-    currentTempUnit,
-    userPreferenceArray
-  );
-  const filteredClothingItems = clothingItems.filter(
-    (item) => item.weather.toLowerCase() === tempCategory.toLowerCase()
-  );
+  const temp = weatherData?.temp?.[currentTempUnit] ?? null;
+
+  const tempCategory =
+    temp !== null
+      ? getTempCategory(temp, currentTempUnit, userPreferenceArray)
+      : "unknown";
+
+  const filteredClothingItems =
+    tempCategory === "unknown"
+      ? clothingItems
+      : clothingItems.filter(
+          (item) => item.weather.toLowerCase() === tempCategory.toLowerCase()
+        );
+
   const unitConfig = userPreferenceArray.find(
     (config) => config.unit === currentTempUnit
   );
