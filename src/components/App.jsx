@@ -142,9 +142,10 @@ function App() {
 
   useEffect(() => {
     getItems()
-      .then(({ data }) => {
-        console.log("Fetched items:", { data });
-        setClothingItems(data);
+      .then((res) => {
+        const items = res.data || res.items || [];
+        console.log("Fetched items:", items);
+        setClothingItems(Array.isArray(items) ? items : []);
       })
       .catch(console.error);
   }, []);

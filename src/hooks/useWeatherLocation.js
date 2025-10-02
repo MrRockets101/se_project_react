@@ -1,46 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
-import { getWeatherData } from "../utils/weatherApi";
-import { IpAPIKey } from "../utils/constants";
 
 const DEFAULT_COORDS = { latitude: 40.7128, longitude: -74.006 }; // NYC fallback
+const BACKEND_WEATHER_URL = "http://localhost:3001/api/weather"; // proxy route on backend
 
 async function getClientIpGeolocation() {
-  const response = await fetch(`https://ipinfo.io/json?token=${IpAPIKey}`);
-  if (!response.ok) {
-    throw new Error("Failed to get client IP geolocation");
-  }
-
+  const response = await fetch(`https://ipinfo.io/json?token=f4e039cced363b`);
+  if (!response.ok) throw new Error("Failed to get client IP geolocation");
   const data = await response.json();
-  console.log("IP Info client data:", data); // <-- DEBUG LOG
+  console.log("IP Info client data:", data);
 
-  if (!data.loc) {
-    throw new Error("Location data missing in IP info response");
-  }
-
+  if (!data.loc) throw new Error("Location data missing in IP info response");
   const [latitude, longitude] = data.loc.split(",");
-  return {
-    latitude: parseFloat(latitude),
-    longitude: parseFloat(longitude),
-  };
-}
-
-async function getServerIpGeolocation() {
-  const response = await fetch(`https://ipinfo.io/json?token=${IpAPIKey}`);
-  if (!response.ok) {
-    throw new Error("Failed to get server IP geolocation");
-  }
-
-  const data = await response.json();
-
-  if (!data.loc) {
-    throw new Error("Location data missing in IP info response");
-  }
-
-  const [latitude, longitude] = data.loc.split(",");
-  return {
-    latitude: parseFloat(latitude),
-    longitude: parseFloat(longitude),
-  };
+  return { latitude: parseFloat(latitude), longitude: parseFloat(longitude) };
 }
 
 export function useWeatherLocation() {
@@ -51,32 +22,45 @@ export function useWeatherLocation() {
   const fetchWeather = useCallback(async ({ latitude, longitude }) => {
     try {
       console.log("Fetching weather for:", latitude, longitude);
-      const data = await getWeatherData(latitude, longitude);
+
+      const res = await fetch(
+        `${BACKEND_WEATHER_URL}?lat=${latitude}&lon=${longitude}`
+      );
+      if (!res.ok) throw new Error(`Weather fetch failed: ${res.status}`);
+      let data = await res.json();
+
+      // If backend does not return a name, use default coordinates
+      if (!data.name) {
+        console.warn("No city name returned, using default coordinates");
+        const defaultRes = await fetch(
+          `${BACKEND_WEATHER_URL}?lat=${DEFAULT_COORDS.latitude}&lon=${DEFAULT_COORDS.longitude}`
+        );
+        if (!defaultRes.ok)
+          throw new Error(`Weather fetch failed: ${defaultRes.status}`);
+        data = await defaultRes.json();
+        // Ensure name is set for default
+        data.name = data.name || "New York";
+      }
+
       console.log("Weather data received:", data);
       setWeatherData(data);
       setApiWeatherError(null);
-    } catch (error) {
-      setApiWeatherError(error.message || "Failed to fetch weather data");
+    } catch (err) {
+      setApiWeatherError(err.message || "Failed to fetch weather data");
     }
   }, []);
 
   const detectIpLocation = useCallback(async () => {
     try {
-      const ipCoords = await getClientIpGeolocation();
+      const coords = await getClientIpGeolocation();
       setApiLocationError(null);
-      await fetchWeather(ipCoords);
-      return ipCoords;
-    } catch {
-      try {
-        const serverCoords = await getServerIpGeolocation();
-        setApiLocationError(null);
-        await fetchWeather(serverCoords);
-        return serverCoords;
-      } catch {
-        setApiLocationError("Failed to detect location via IP");
-        await fetchWeather(DEFAULT_COORDS);
-        return DEFAULT_COORDS;
-      }
+      await fetchWeather(coords);
+      return coords;
+    } catch (err) {
+      console.warn("IP geolocation failed, using default coords", err);
+      setApiLocationError("Failed to detect location via IP");
+      await fetchWeather(DEFAULT_COORDS);
+      return DEFAULT_COORDS;
     }
   }, [fetchWeather]);
 

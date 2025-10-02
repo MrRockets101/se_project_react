@@ -1,6 +1,5 @@
+import { BASE_URL } from "./constants";
 import { fetchJson } from "./fetchJson";
-
-const BASE_URL = "http://localhost:3001";
 
 export function register({ name, avatar, email, password }) {
   return fetchJson(
@@ -44,12 +43,19 @@ export function updateCurrentUser({ name, avatar }) {
   );
 }
 
-// -------------------------
-// CLOTHING ITEMS
-// -------------------------
+export async function getItems() {
+  try {
+    const result = await fetchJson(
+      `${BASE_URL}/items`,
+      {},
+      "Error fetching items"
+    );
 
-export function getItems() {
-  return fetchJson(`${BASE_URL}/items`, {}, "Error fetching items");
+    return Array.isArray(result) ? result : result.data || result.items || [];
+  } catch (err) {
+    console.error("getItems error:", err);
+    return [];
+  }
 }
 
 export function addItem(newItem) {
