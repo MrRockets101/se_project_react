@@ -1,38 +1,98 @@
 import { fetchJson } from "./fetchJson";
 
-const backEnd = "http://localhost:3001";
+const BASE_URL = "http://localhost:3001";
 
-function getItems() {
-  return fetchJson(`${backEnd}/items`, {}, "Error fetching items");
-}
+// -------------------------
+// AUTH
+// -------------------------
 
-function addItem(newItem) {
+export function register({ name, avatar, email, password }) {
   return fetchJson(
-    `${backEnd}/items`,
+    `${BASE_URL}/signup`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      body: JSON.stringify({ name, avatar, email, password }),
+    },
+    "Registration failed"
+  );
+}
+
+export function login({ email, password }) {
+  return fetchJson(
+    `${BASE_URL}/signin`,
+    {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    },
+    "Login failed"
+  ).then((data) => {
+    if (data.token) {
+      localStorage.setItem("jwt", data.token); // save token for later requests
+    }
+    return data;
+  });
+}
+
+export function getCurrentUser() {
+  return fetchJson(`${BASE_URL}/me`, {}, "Failed to fetch user profile");
+}
+
+export function updateCurrentUser({ name, avatar }) {
+  return fetchJson(
+    `${BASE_URL}/me`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ name, avatar }),
+    },
+    "Failed to update profile"
+  );
+}
+
+// -------------------------
+// CLOTHING ITEMS
+// -------------------------
+
+export function getItems() {
+  return fetchJson(`${BASE_URL}/items`, {}, "Error fetching items");
+}
+
+export function addItem(newItem) {
+  return fetchJson(
+    `${BASE_URL}/items`,
+    {
+      method: "POST",
       body: JSON.stringify(newItem),
     },
     "Error adding item"
   );
 }
 
-async function deleteItem(id) {
-  const response = await fetch(`${backEnd}/items/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
+export function deleteItem(id) {
+  return fetchJson(
+    `${BASE_URL}/items/${id}`,
+    {
+      method: "DELETE",
     },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete item");
-  }
-
-  return true;
+    "Error deleting item"
+  );
 }
 
-export { getItems, addItem, deleteItem };
+export function likeItem(id) {
+  return fetchJson(
+    `${BASE_URL}/items/${id}/likes`,
+    {
+      method: "PUT",
+    },
+    "Error liking item"
+  );
+}
+
+export function unlikeItem(id) {
+  return fetchJson(
+    `${BASE_URL}/items/${id}/likes`,
+    {
+      method: "DELETE",
+    },
+    "Error unliking item"
+  );
+}
