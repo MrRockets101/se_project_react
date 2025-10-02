@@ -1,6 +1,6 @@
 export async function fetchJson(
   url,
-  options = {},
+  options = { method: "GET" },
   errorMessage = "Request failed"
 ) {
   try {

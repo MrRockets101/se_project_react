@@ -11,15 +11,8 @@ function getWeatherCondition(weatherCode) {
   return "unknown";
 }
 
-export function getWeatherData(latitude, longitude) {
-  const url = getWeatherApiUrl(latitude, longitude);
-  return fetchJson(url, {}, "Weather API error").then((data) => {
-    console.log("Raw weather data:", data);
-    return parseWeatherData(data);
-  });
-}
-
-function parseWeatherData(data) {
+export function parseWeatherData(data) {
+  // Ensure this is a named export
   return {
     name: data.name || "Unknown location",
     temp: {
@@ -28,4 +21,12 @@ function parseWeatherData(data) {
     },
     weather: getWeatherCondition(data.weather[0]),
   };
+}
+
+export function getWeatherData(latitude, longitude) {
+  const url = getWeatherApiUrl(latitude, longitude);
+  return fetchJson(url, {}, "Weather API error").then((data) => {
+    console.log("Raw weather data:", data);
+    return parseWeatherData(data);
+  });
 }

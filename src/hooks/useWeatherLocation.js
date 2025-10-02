@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { parseWeatherData } from "../utils/weatherApi"; // Import the parsing function
 
 const DEFAULT_COORDS = { latitude: 40.7128, longitude: -74.006 }; // NYC fallback
 const BACKEND_WEATHER_URL = "http://localhost:3001/api/weather"; // proxy route on backend
@@ -43,7 +44,9 @@ export function useWeatherLocation() {
       }
 
       console.log("Weather data received:", data);
-      setWeatherData(data);
+      const parsedData = parseWeatherData(data); // Parse the raw data
+      console.log("Parsed weather data:", parsedData); // Log parsed data for verification
+      setWeatherData(parsedData); // Set the parsed data
       setApiWeatherError(null);
     } catch (err) {
       setApiWeatherError(err.message || "Failed to fetch weather data");
