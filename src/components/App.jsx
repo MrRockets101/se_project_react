@@ -71,16 +71,6 @@ function App() {
 
   const categories = unitConfig ? unitConfig.categories : [];
 
-  const generateUniqueId = () => {
-    if (clothingItems.length === 0) return "1";
-
-    const numericIds = clothingItems
-      .map((item) => parseInt(item._id))
-      .filter((id) => !isNaN(id));
-
-    const maxId = Math.max(...numericIds);
-    return (maxId + 1).toString();
-  };
   const [itemToDelete, setItemToDelete] = useState(null);
   const handleDeleteItem = (card) => {
     setItemToDelete(card);
@@ -127,27 +117,26 @@ function App() {
     event.preventDefault();
     setApiError("");
 
-    if (!validate()) return;
+    if (!validate()) {
+      return;
+    }
 
     try {
-      const response = await formValidation();
-      console.log("Form submitted successfully:", response);
-
       const newItem = {
-        _id: generateUniqueId(),
         name: values.name,
         imageUrl: values.image,
         weather: values.weather.toLowerCase(),
       };
 
       const savedItem = await addItem(newItem);
+
       setClothingItems((prevItems) => [savedItem, ...prevItems]);
 
-      handleCloseModal();
       resetForm();
+      handleCloseModal();
     } catch (error) {
-      console.error("Failed to submit:", error);
-      setApiError(error.message || "Failed to submit.");
+      console.error("Failed to add item:", error);
+      setApiError(error.message || "Failed to add item.");
     }
   };
 
@@ -208,27 +197,27 @@ function App() {
 
         <AddItemModal
           isOpen={activeModal === "item-garment-modal"}
+          handleCloseModal={handleCloseModal}
           title="Add New Garment"
           buttonText="Add Garment"
           name="add-garment-form"
+          categories={categories}
+          apiError={apiError}
+          setApiError={setApiError}
           handleSubmit={async (values) => {
-            const newItem = {
-              _id: generateUniqueId(),
-              name: values.name,
-              imageUrl: values.image,
-              weather: values.weather.toLowerCase(),
-            };
-
             try {
+              const newItem = {
+                name: values.name,
+                imageUrl: values.image,
+                weather: values.weather.toLowerCase(),
+              };
               const savedItem = await addItem(newItem);
-              setClothingItems((prevItems) => [...prevItems, savedItem]);
+              setClothingItems((prev) => [savedItem, ...prev]);
             } catch (error) {
               console.error("Failed to submit:", error);
+              throw error; // propagate to modal for display
             }
           }}
-          handleCloseModal={handleCloseModal}
-          apiError={apiError}
-          categories={categories}
         />
 
         <ConfirmDeleteModal

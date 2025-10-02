@@ -2,10 +2,6 @@ import { fetchJson } from "./fetchJson";
 
 const BASE_URL = "http://localhost:3001";
 
-// -------------------------
-// AUTH
-// -------------------------
-
 export function register({ name, avatar, email, password }) {
   return fetchJson(
     `${BASE_URL}/signup`,
@@ -27,7 +23,7 @@ export function login({ email, password }) {
     "Login failed"
   ).then((data) => {
     if (data.token) {
-      localStorage.setItem("jwt", data.token); // save token for later requests
+      localStorage.setItem("jwt", data.token);
     }
     return data;
   });

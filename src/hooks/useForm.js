@@ -5,25 +5,31 @@ export function useForm(initialValues = {}) {
   const [errors, setErrors] = useState({});
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
-  const validate = useCallback((v) => {
-    const errs = {};
-    let isValid = true;
+  const validate = useCallback(
+    (v = values) => {
+      const errs = {};
+      let isValid = true;
 
-    if (!v.name) {
-      errs.name = "Name is required.";
-      isValid = false;
-    }
-    if (!v.image) {
-      errs.image = "Image URL is required.";
-      isValid = false;
-    }
-    if (!v.weather) {
-      errs.weather = "Please select a weather type.";
-      isValid = false;
-    }
+      if (!v.name) {
+        errs.name = "Name is required.";
+        isValid = false;
+      }
+      if (!v.image) {
+        errs.image = "Image URL is required.";
+        isValid = false;
+      }
+      if (!v.weather) {
+        errs.weather = "Please select a weather type.";
+        isValid = false;
+      }
 
-    return { errs, isValid };
-  }, []);
+      setErrors(errs);
+      setIsButtonDisabled(!isValid);
+
+      return isValid;
+    },
+    [values]
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;

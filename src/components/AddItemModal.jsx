@@ -1,16 +1,17 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../index.css";
 import ModalWithForm from "./ModalWithForm";
 import { useForm } from "../hooks/useForm";
 
 function AddItemModal({
   isOpen,
-  handleSubmit: onSubmitFromApp,
+  handleSubmit: onSubmitFromApp, // API call from parent
   title,
   buttonText,
   name,
   handleCloseModal,
-  apiError,
+  apiError: parentApiError,
+  setApiError, // pass this from App.jsx to update API errors
   categories,
 }) {
   const initialValues = useMemo(
@@ -31,14 +32,19 @@ function AddItemModal({
     isButtonDisabled,
   } = useForm(initialValues);
 
+  const [localApiError, setLocalApiError] = useState("");
+
   useEffect(() => {
     if (isOpen) {
       resetForm();
+      setLocalApiError("");
+      if (setApiError) setApiError("");
     }
-  }, [isOpen, resetForm]);
+  }, [isOpen, resetForm, setApiError]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLocalApiError("");
     if (!validate()) return;
 
     try {
@@ -47,6 +53,9 @@ function AddItemModal({
       handleCloseModal();
     } catch (error) {
       console.error("Failed to add item:", error);
+      const message = error.message || "Failed to add item.";
+      setLocalApiError(message);
+      if (setApiError) setApiError(message); // propagate to App if needed
     }
   };
 
@@ -62,7 +71,7 @@ function AddItemModal({
       isButtonDisabled={isButtonDisabled}
       values={values}
       handleChange={handleChange}
-      apiError={apiError}
+      apiError={localApiError || parentApiError}
       categories={categories}
     />
   );
