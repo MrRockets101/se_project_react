@@ -153,9 +153,9 @@ function App() {
 
   useEffect(() => {
     getItems()
-      .then((items) => {
-        console.log("Fetched items:", items);
-        setClothingItems(items);
+      .then(({ data }) => {
+        console.log("Fetched items:", { data });
+        setClothingItems(data);
       })
       .catch(console.error);
   }, []);

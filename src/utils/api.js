@@ -1,14 +1,14 @@
 import { fetchJson } from "./fetchJson";
 
-const baseUrlJson = "http://localhost:3001";
+const backEnd = "http://localhost:3001";
 
 function getItems() {
-  return fetchJson(`${baseUrlJson}/items`, {}, "Error fetching items");
+  return fetchJson(`${backEnd}/items`, {}, "Error fetching items");
 }
 
 function addItem(newItem) {
   return fetchJson(
-    `${baseUrlJson}/items`,
+    `${backEnd}/items`,
     {
       method: "POST",
       headers: {
@@ -21,7 +21,7 @@ function addItem(newItem) {
 }
 
 async function deleteItem(id) {
-  const response = await fetch(`${baseUrlJson}/items/${id}`, {
+  const response = await fetch(`${backEnd}/items/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
