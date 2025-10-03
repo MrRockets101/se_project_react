@@ -6,10 +6,11 @@ function Profile({
   clothingItems,
   handleOpenItemModal,
   handleOpenAddGarmentModal,
+  currentUser,
 }) {
   return (
     <div className="profile">
-      <SideBar />
+      <SideBar currentUser={currentUser} />
       <ClothesSection
         clothingItems={clothingItems}
         isProfile={true}
@@ -19,4 +20,5 @@ function Profile({
     </div>
   );
 }
+
 export default Profile;

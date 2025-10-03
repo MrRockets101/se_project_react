@@ -1,27 +1,41 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-
-import { getItems, addItem, deleteItem } from "../utils/api";
+import {
+  getItems,
+  addItem,
+  deleteItem,
+  register,
+  login,
+  getCurrentUser,
+} from "../utils/api";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Profile from "./Profile";
 import Header from "./Header";
 import Main from "./Main";
-import Footer from "./footer";
+import Footer from "./Footer";
 import ItemModal from "./ItemModal";
+import RegisterModal from "./RegisterModal";
+import LoginModal from "./LoginModal";
 import "../index.css";
 import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext";
 import { userPreferenceArray } from "../utils/userPreferenceArray";
 import { getTempCategory } from "../utils/getTempCategory";
 import AddItemModal from "./AddItemModal";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import { useWeatherLocation } from "../hooks/useWeatherLocation";
-
 import LocationModal from "./LocationModal";
+
+function ProtectedRoute({ children, isAuthenticated }) {
+  return isAuthenticated ? children : <Navigate to="/" />;
+}
 
 function App() {
   const [clothingItems, setClothingItems] = useState([]);
   const [activeModal, setActiveModal] = useState("");
   const [selectedCard, setSelectedCard] = useState({});
   const [locationModalOpen, setLocationModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [apiError, setApiError] = useState("");
 
   const handleOpenLocationModal = () => setLocationModalOpen(true);
   const handleCloseLocationModal = () => setLocationModalOpen(false);
@@ -36,8 +50,6 @@ function App() {
 
   const { weatherData, apiWeatherError, apiLocationError, updateLocation } =
     useWeatherLocation();
-
-  const [apiError, setApiError] = useState("");
 
   const [currentTempUnit, setCurrentTempUnit] = useState("F");
   const temp = weatherData?.temp?.[currentTempUnit] ?? null;
@@ -72,14 +84,18 @@ function App() {
   const categories = unitConfig ? unitConfig.categories : [];
 
   const [itemToDelete, setItemToDelete] = useState(null);
+
   const handleDeleteItem = (card) => {
+    if (!isAuthenticated) {
+      setActiveModal("login");
+      return;
+    }
     setItemToDelete(card);
     setActiveModal("confirm-delete");
   };
+
   const handleConfirmDelete = async () => {
     try {
-      console.log("Deleting item with ID:", itemToDelete?._id, itemToDelete);
-
       await deleteItem(itemToDelete._id);
       setClothingItems((prev) =>
         prev.filter((item) => item._id !== itemToDelete._id)
@@ -88,55 +104,108 @@ function App() {
       handleCloseModal();
     } catch (err) {
       console.error("Failed to delete item", err);
-      alert("Failed to delete item.");
+      setApiError("Failed to delete item.");
     }
   };
 
-  function handleOpenItemModal(card) {
+  const handleOpenItemModal = (card) => {
     setActiveModal("item-modal");
     setSelectedCard(card);
-  }
+  };
 
-  function handleOpenAddGarmentModal() {
-    setActiveModal("item-garment-modal");
-    setApiError("");
-  }
-  function handleTempUnitChange() {
-    if (currentTempUnit === "F") {
-      setCurrentTempUnit("C");
-    } else {
-      setCurrentTempUnit("F");
-    }
-  }
-  function handleCloseModal() {
-    setActiveModal("");
-    setApiError("");
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setApiError("");
-
-    if (!validate()) {
+  const handleOpenAddGarmentModal = () => {
+    if (!isAuthenticated) {
+      setActiveModal("login");
       return;
     }
+    setActiveModal("item-garment-modal");
+    setApiError("");
+  };
 
+  const handleOpenRegisterModal = () => {
+    setActiveModal("register");
+    setApiError("");
+  };
+
+  const handleOpenLoginModal = () => {
+    setActiveModal("login");
+    setApiError("");
+  };
+
+  const handleTempUnitChange = () => {
+    setCurrentTempUnit(currentTempUnit === "F" ? "C" : "F");
+  };
+
+  const handleCloseModal = () => {
+    setActiveModal("");
+    setApiError("");
+  };
+
+  const handleRegister = async (values) => {
+    try {
+      const user = await register(values);
+      setCurrentUser(user);
+      // Auto-login after registration
+      const { email, password } = values;
+      const loginResponse = await login({ email, password });
+      localStorage.setItem("jwt", loginResponse.token);
+      setIsAuthenticated(true);
+      setApiError("");
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw new Error(error.message || "Failed to register.");
+    }
+  };
+
+  const handleLogin = async (values) => {
+    try {
+      const response = await login(values);
+      localStorage.setItem("jwt", response.token);
+      const user = await getCurrentUser();
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      setApiError("");
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw new Error(error.message || "Failed to login.");
+    }
+  };
+
+  const checkToken = useCallback(async () => {
+    const token = localStorage.getItem("jwt");
+    if (token) {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Token validation failed:", error);
+        localStorage.removeItem("jwt");
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    checkToken();
+  }, [checkToken]);
+
+  const handleSubmitAddItem = async (values) => {
+    if (!isAuthenticated) {
+      throw new Error("You must be logged in to add items.");
+    }
     try {
       const newItem = {
         name: values.name,
         imageUrl: values.image,
         weather: values.weather.toLowerCase(),
       };
-
       const savedItem = await addItem(newItem);
-
-      setClothingItems((prevItems) => [savedItem, ...prevItems]);
-
-      resetForm();
-      handleCloseModal();
+      setClothingItems((prev) => [savedItem, ...prev]);
     } catch (error) {
       console.error("Failed to add item:", error);
-      setApiError(error.message || "Failed to add item.");
+      throw new Error(error.message || "Failed to add item.");
     }
   };
 
@@ -144,11 +213,11 @@ function App() {
     getItems()
       .then((items) => {
         console.log("Fetched items:", items);
-        setClothingItems(items); // items is always an array now
+        setClothingItems(items);
       })
       .catch((err) => {
         console.error("Error fetching items:", err);
-        setClothingItems([]); // fallback to empty array
+        setClothingItems([]);
       });
   }, []);
 
@@ -163,6 +232,10 @@ function App() {
           handleCloseModal={handleCloseModal}
           apiLocationError={apiLocationError}
           handleOpenLocationModal={handleOpenLocationModal}
+          handleOpenRegisterModal={handleOpenRegisterModal}
+          handleOpenLoginModal={handleOpenLoginModal}
+          isAuthenticated={isAuthenticated}
+          currentUser={currentUser}
         />
         <Routes>
           <Route
@@ -181,15 +254,17 @@ function App() {
           <Route
             path="/profile"
             element={
-              <Profile
-                clothingItems={clothingItems}
-                handleOpenItemModal={handleOpenItemModal}
-                handleOpenAddGarmentModal={handleOpenAddGarmentModal}
-              />
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <Profile
+                  clothingItems={clothingItems}
+                  handleOpenItemModal={handleOpenItemModal}
+                  handleOpenAddGarmentModal={handleOpenAddGarmentModal}
+                  currentUser={currentUser}
+                />
+              </ProtectedRoute>
             }
           />
         </Routes>
-
         <Footer />
         <ItemModal
           card={selectedCard}
@@ -197,7 +272,6 @@ function App() {
           handleCloseModal={handleCloseModal}
           handleDeleteItem={handleDeleteItem}
         />
-
         <AddItemModal
           isOpen={activeModal === "item-garment-modal"}
           handleCloseModal={handleCloseModal}
@@ -207,22 +281,24 @@ function App() {
           categories={categories}
           apiError={apiError}
           setApiError={setApiError}
-          handleSubmit={async (values) => {
-            try {
-              const newItem = {
-                name: values.name,
-                imageUrl: values.image,
-                weather: values.weather.toLowerCase(),
-              };
-              const savedItem = await addItem(newItem);
-              setClothingItems((prev) => [savedItem, ...prev]);
-            } catch (error) {
-              console.error("Failed to submit:", error);
-              throw error; // propagate to modal for display
-            }
-          }}
+          handleSubmit={handleSubmitAddItem}
         />
-
+        <RegisterModal
+          isOpen={activeModal === "register"}
+          handleCloseModal={handleCloseModal}
+          handleSubmit={handleRegister}
+          apiError={apiError}
+          setApiError={setApiError}
+          onSwitchToLogin={() => setActiveModal("login")}
+        />
+        <LoginModal
+          isOpen={activeModal === "login"}
+          handleCloseModal={handleCloseModal}
+          handleSubmit={handleLogin}
+          apiError={apiError}
+          setApiError={setApiError}
+          onSwitchToRegister={() => setActiveModal("register")}
+        />
         <ConfirmDeleteModal
           isOpen={activeModal === "confirm-delete"}
           onClose={handleCloseModal}

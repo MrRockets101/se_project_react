@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import logo from "../images/wtwr-logo.svg";
 import avatar from "../images/user-avatar.png";
 import "../index.css";
-import ToggleSwitch from "./toggleSwitch";
+import ToggleSwitch from "./ToggleSwitch";
 
 function Header({
   weatherData,
@@ -10,6 +10,10 @@ function Header({
   apiLocationError,
   apiWeatherError,
   handleOpenLocationModal,
+  handleOpenRegisterModal,
+  handleOpenLoginModal,
+  isAuthenticated,
+  currentUser,
 }) {
   const now = new Date();
   const date = now.toLocaleDateString("en-US", {
@@ -23,7 +27,6 @@ function Header({
         <Link to="/" className="header__logo-link">
           <img src={logo} alt="WTWR Logo" className="header_logo" />
         </Link>
-
         <p className="header__location">
           <time className="header__calender" dateTime={now.toISOString()}>
             {date}
@@ -41,18 +44,36 @@ function Header({
           )}
         </p>
       </div>
-      <div className="header__partition">
+      <div className="header__partition header__partition-right">
         <ToggleSwitch />
-        <button
-          onClick={handleOpenAddGarmentModal}
-          className="header__add-clothes-button"
-        >
-          + Add clothes
-        </button>
-        <Link to="/profile" className="header__profile-link">
-          <p className="header__username">Terrence Tegegne</p>
-          <img src={avatar} alt="User Avatar" className="header__user-avatar" />
-        </Link>
+        {isAuthenticated ? (
+          <>
+            <button
+              onClick={handleOpenAddGarmentModal}
+              className="header__add-clothes-button"
+            >
+              + Add clothes
+            </button>
+            <Link to="/profile" className="header__profile-link">
+              <p className="header__username">{currentUser?.name || "Guest"}</p>
+            </Link>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={handleOpenRegisterModal}
+              className="header__auth-button"
+            >
+              Sign Up
+            </button>
+            <button
+              onClick={handleOpenLoginModal}
+              className="header__auth-button"
+            >
+              Log In
+            </button>
+          </>
+        )}
       </div>
     </header>
   );
