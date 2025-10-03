@@ -29,12 +29,12 @@ export function login({ email, password }) {
 }
 
 export function getCurrentUser() {
-  return fetchJson(`${BASE_URL}/me`, {}, "Failed to fetch user profile");
+  return fetchJson(`${BASE_URL}/users`, {}, "Failed to fetch user profile");
 }
 
 export function updateCurrentUser({ name, avatar }) {
   return fetchJson(
-    `${BASE_URL}/me`,
+    `${BASE_URL}/users`,
     {
       method: "PATCH",
       body: JSON.stringify({ name, avatar }),
