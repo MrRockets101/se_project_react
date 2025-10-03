@@ -45,14 +45,12 @@ export function updateCurrentUser({ name, avatar }) {
 
 export async function getItems() {
   try {
-    const result = await fetchJson(
+    const items = await fetchJson(
       `${BASE_URL}/items`,
       {},
       "Error fetching items"
     );
-
-    // unwrap items from result.data
-    return result.data || [];
+    return items;
   } catch (err) {
     console.error("getItems error:", err);
     return [];
