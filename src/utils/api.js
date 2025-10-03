@@ -51,6 +51,7 @@ export async function getItems() {
       "Error fetching items"
     );
 
+    // unwrap items from result.data
     return result.data || [];
   } catch (err) {
     console.error("getItems error:", err);
