@@ -179,24 +179,25 @@ function RegisterModal({
               {localApiError || parentApiError}
             </p>
           ) : null}
-
-          <button
-            className="modal__submit-button header__auth-button"
-            type="submit"
-            disabled={isButtonDisabled}
-          >
-            Next
-          </button>
-          <p className="modal__switch">
-            or{" "}
+          <div className="modal__button-container">
             <button
-              className="modal__switch-link"
-              type="button"
-              onClick={onSwitchToLogin}
+              className="modal__submit-button header__auth-button"
+              type="submit"
+              disabled={isButtonDisabled}
             >
-              Log in
+              Next
             </button>
-          </p>
+            <p className="modal__switch">
+              or{" "}
+              <button
+                className="modal__switch-link"
+                type="button"
+                onClick={onSwitchToLogin}
+              >
+                Log in
+              </button>
+            </p>
+          </div>
         </form>
       </div>
     </div>

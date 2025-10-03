@@ -8,7 +8,7 @@ function SideBar({ currentUser }) {
       <img
         src={currentUser?.avatar || avatar}
         alt="User Avatar"
-        className="sidebar__user-avatar"
+        className="sidebar__user-avatar header__user-avatar"
       />
       <div className="sidebar__row"></div>
     </aside>

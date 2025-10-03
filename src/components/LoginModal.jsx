@@ -128,24 +128,25 @@ function LoginModal({
               {localApiError || parentApiError}
             </p>
           ) : null}
-
-          <button
-            className="modal__submit-button"
-            type="submit"
-            disabled={isButtonDisabled}
-          >
-            Log in
-          </button>
-          <p className="modal__switch">
-            or{" "}
+          <div className="modal__button-container">
             <button
-              className="modal__switch-link"
-              type="button"
-              onClick={onSwitchToRegister}
+              className="modal__submit-button"
+              type="submit"
+              disabled={isButtonDisabled}
             >
-              Register
+              Log in
             </button>
-          </p>
+            <p className="modal__switch">
+              or{" "}
+              <button
+                className="modal__switch-link"
+                type="button"
+                onClick={onSwitchToRegister}
+              >
+                Register
+              </button>
+            </p>
+          </div>
         </form>
       </div>
     </div>
