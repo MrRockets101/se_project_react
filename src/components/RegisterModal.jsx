@@ -181,7 +181,7 @@ function RegisterModal({
           ) : null}
 
           <button
-            className="modal__submit-button"
+            className="modal__submit-button header__auth-button"
             type="submit"
             disabled={isButtonDisabled}
           >
