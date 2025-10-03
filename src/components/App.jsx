@@ -142,12 +142,14 @@ function App() {
 
   useEffect(() => {
     getItems()
-      .then((res) => {
-        const items = res.data || res.items || [];
+      .then((items) => {
         console.log("Fetched items:", items);
-        setClothingItems(Array.isArray(items) ? items : []);
+        setClothingItems(items); // items is always an array now
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error("Error fetching items:", err);
+        setClothingItems([]); // fallback to empty array
+      });
   }, []);
 
   return (

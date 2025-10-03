@@ -45,12 +45,20 @@ export function updateCurrentUser({ name, avatar }) {
 
 export async function getItems() {
   try {
-    const items = await fetchJson(
+    const result = await fetchJson(
       `${BASE_URL}/items`,
       {},
       "Error fetching items"
     );
-    return items;
+
+    // If the response is an array, return it directly; otherwise, try result.data
+    if (Array.isArray(result)) {
+      return result;
+    } else if (result && Array.isArray(result.data)) {
+      return result.data;
+    } else {
+      return []; // fallback if neither structure matches
+    }
   } catch (err) {
     console.error("getItems error:", err);
     return [];
