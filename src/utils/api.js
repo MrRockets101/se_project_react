@@ -51,7 +51,7 @@ export async function getItems() {
       "Error fetching items"
     );
 
-    return Array.isArray(result) ? result : result.data || result.items || [];
+    return result.data || [];
   } catch (err) {
     console.error("getItems error:", err);
     return [];
