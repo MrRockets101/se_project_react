@@ -6,6 +6,7 @@ import {
   register,
   login,
   getCurrentUser,
+  updateCurrentUser,
 } from "../utils/api";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Profile from "./Profile";
@@ -15,6 +16,7 @@ import Footer from "./Footer";
 import ItemModal from "./ItemModal";
 import RegisterModal from "./RegisterModal";
 import LoginModal from "./LoginModal";
+import EditProfileModal from "./EditProfileModal";
 import "../index.css";
 import CurrentTemperatureUnitContext from "../utils/CurrentTemperatureUnitContext";
 import { userPreferenceArray } from "../utils/userPreferenceArray";
@@ -23,9 +25,11 @@ import AddItemModal from "./AddItemModal";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { useWeatherLocation } from "../hooks/useWeatherLocation";
 import LocationModal from "./LocationModal";
+import CurrentUserContext from "../Context/CurrentUserContext";
+import ErrorBoundary from "./ErrorBoundary";
 
-function ProtectedRoute({ children, isAuthenticated }) {
-  return isAuthenticated ? children : <Navigate to="/" />;
+function ProtectedRoute({ children, isLoggedIn }) {
+  return isLoggedIn ? children : <Navigate to="/" />;
 }
 
 function App() {
@@ -33,8 +37,8 @@ function App() {
   const [activeModal, setActiveModal] = useState("");
   const [selectedCard, setSelectedCard] = useState({});
   const [locationModalOpen, setLocationModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [apiError, setApiError] = useState("");
 
   const handleOpenLocationModal = () => setLocationModalOpen(true);
@@ -86,7 +90,7 @@ function App() {
   const [itemToDelete, setItemToDelete] = useState(null);
 
   const handleDeleteItem = (card) => {
-    if (!isAuthenticated) {
+    if (!isLoggedIn) {
       setActiveModal("login");
       return;
     }
@@ -114,7 +118,7 @@ function App() {
   };
 
   const handleOpenAddGarmentModal = () => {
-    if (!isAuthenticated) {
+    if (!isLoggedIn) {
       setActiveModal("login");
       return;
     }
@@ -132,6 +136,15 @@ function App() {
     setApiError("");
   };
 
+  const handleOpenEditProfileModal = () => {
+    if (!isLoggedIn) {
+      setActiveModal("login");
+      return;
+    }
+    setActiveModal("edit-profile");
+    setApiError("");
+  };
+
   const handleTempUnitChange = () => {
     setCurrentTempUnit(currentTempUnit === "F" ? "C" : "F");
   };
@@ -145,11 +158,10 @@ function App() {
     try {
       const user = await register(values);
       setCurrentUser(user);
-      // Auto-login after registration
+      setIsLoggedIn(true);
       const { email, password } = values;
       const loginResponse = await login({ email, password });
       localStorage.setItem("jwt", loginResponse.token);
-      setIsAuthenticated(true);
       setApiError("");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -163,11 +175,28 @@ function App() {
       localStorage.setItem("jwt", response.token);
       const user = await getCurrentUser();
       setCurrentUser(user);
-      setIsAuthenticated(true);
+      setIsLoggedIn(true);
       setApiError("");
     } catch (error) {
       console.error("Login failed:", error);
       throw new Error(error.message || "Failed to login.");
+    }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("jwt");
+    setCurrentUser(null);
+    setIsLoggedIn(false);
+  };
+
+  const handleEditProfile = async (values) => {
+    try {
+      const updatedUser = await updateCurrentUser(values);
+      setCurrentUser(updatedUser);
+      setApiError("");
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      throw new Error(error.message || "Failed to update profile.");
     }
   };
 
@@ -177,13 +206,16 @@ function App() {
       try {
         const user = await getCurrentUser();
         setCurrentUser(user);
-        setIsAuthenticated(true);
+        setIsLoggedIn(true);
       } catch (error) {
         console.error("Token validation failed:", error);
         localStorage.removeItem("jwt");
-        setIsAuthenticated(false);
+        setIsLoggedIn(false);
         setCurrentUser(null);
       }
+    } else {
+      setIsLoggedIn(false);
+      setCurrentUser(null);
     }
   }, []);
 
@@ -192,7 +224,7 @@ function App() {
   }, [checkToken]);
 
   const handleSubmitAddItem = async (values) => {
-    if (!isAuthenticated) {
+    if (!isLoggedIn) {
       throw new Error("You must be logged in to add items.");
     }
     try {
@@ -222,96 +254,107 @@ function App() {
   }, []);
 
   return (
-    <div className="app">
-      <CurrentTemperatureUnitContext.Provider
-        value={{ currentTempUnit, handleTempUnitChange }}
-      >
-        <Header
-          weatherData={weatherData}
-          handleOpenAddGarmentModal={handleOpenAddGarmentModal}
-          handleCloseModal={handleCloseModal}
-          apiLocationError={apiLocationError}
-          handleOpenLocationModal={handleOpenLocationModal}
-          handleOpenRegisterModal={handleOpenRegisterModal}
-          handleOpenLoginModal={handleOpenLoginModal}
-          isAuthenticated={isAuthenticated}
-          currentUser={currentUser}
-        />
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <Main
-                weatherData={weatherData}
-                clothingItems={filteredClothingItems}
-                tempCategory={tempCategory}
-                handleOpenItemModal={handleOpenItemModal}
-                handleCloseModal={handleCloseModal}
-                apiWeatherError={apiWeatherError}
-              />
-            }
+    <CurrentUserContext.Provider value={currentUser}>
+      <div className="app">
+        <CurrentTemperatureUnitContext.Provider
+          value={{ currentTempUnit, handleTempUnitChange }}
+        >
+          <Header
+            weatherData={weatherData}
+            handleOpenAddGarmentModal={handleOpenAddGarmentModal}
+            handleCloseModal={handleCloseModal}
+            apiLocationError={apiLocationError}
+            handleOpenLocationModal={handleOpenLocationModal}
+            handleOpenRegisterModal={handleOpenRegisterModal}
+            handleOpenLoginModal={handleOpenLoginModal}
+            isLoggedIn={isLoggedIn}
           />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute isAuthenticated={isAuthenticated}>
-                <Profile
-                  clothingItems={clothingItems}
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Main
+                  weatherData={weatherData}
+                  clothingItems={filteredClothingItems}
+                  tempCategory={tempCategory}
                   handleOpenItemModal={handleOpenItemModal}
-                  handleOpenAddGarmentModal={handleOpenAddGarmentModal}
-                  currentUser={currentUser}
+                  handleCloseModal={handleCloseModal}
+                  apiWeatherError={apiWeatherError}
                 />
-              </ProtectedRoute>
-            }
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <Profile
+                    clothingItems={clothingItems}
+                    handleOpenItemModal={handleOpenItemModal}
+                    handleOpenAddGarmentModal={handleOpenAddGarmentModal}
+                    currentUser={currentUser}
+                    handleSignOut={handleSignOut}
+                    handleOpenEditProfileModal={handleOpenEditProfileModal}
+                  />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+          <Footer />
+          <ItemModal
+            card={selectedCard}
+            isOpen={activeModal === "item-modal"}
+            handleCloseModal={handleCloseModal}
+            handleDeleteItem={handleDeleteItem}
           />
-        </Routes>
-        <Footer />
-        <ItemModal
-          card={selectedCard}
-          isOpen={activeModal === "item-modal"}
-          handleCloseModal={handleCloseModal}
-          handleDeleteItem={handleDeleteItem}
-        />
-        <AddItemModal
-          isOpen={activeModal === "item-garment-modal"}
-          handleCloseModal={handleCloseModal}
-          title="Add New Garment"
-          buttonText="Add Garment"
-          name="add-garment-form"
-          categories={categories}
-          apiError={apiError}
-          setApiError={setApiError}
-          handleSubmit={handleSubmitAddItem}
-        />
-        <RegisterModal
-          isOpen={activeModal === "register"}
-          handleCloseModal={handleCloseModal}
-          handleSubmit={handleRegister}
-          apiError={apiError}
-          setApiError={setApiError}
-          onSwitchToLogin={() => setActiveModal("login")}
-        />
-        <LoginModal
-          isOpen={activeModal === "login"}
-          handleCloseModal={handleCloseModal}
-          handleSubmit={handleLogin}
-          apiError={apiError}
-          setApiError={setApiError}
-          onSwitchToRegister={() => setActiveModal("register")}
-        />
-        <ConfirmDeleteModal
-          isOpen={activeModal === "confirm-delete"}
-          onClose={handleCloseModal}
-          onConfirm={handleConfirmDelete}
-        />
-        {locationModalOpen && (
-          <LocationModal
-            onClose={handleCloseLocationModal}
-            onUpdateLocation={handleUpdateLocation}
+          <AddItemModal
+            isOpen={activeModal === "item-garment-modal"}
+            handleCloseModal={handleCloseModal}
+            title="Add New Garment"
+            buttonText="Add Garment"
+            name="add-garment-form"
+            categories={categories}
+            apiError={apiError}
+            setApiError={setApiError}
+            handleSubmit={handleSubmitAddItem}
           />
-        )}
-      </CurrentTemperatureUnitContext.Provider>
-    </div>
+          <RegisterModal
+            isOpen={activeModal === "register"}
+            handleCloseModal={handleCloseModal}
+            handleSubmit={handleRegister}
+            apiError={apiError}
+            setApiError={setApiError}
+            onSwitchToLogin={() => setActiveModal("login")}
+          />
+          <LoginModal
+            isOpen={activeModal === "login"}
+            handleCloseModal={handleCloseModal}
+            handleSubmit={handleLogin}
+            apiError={apiError}
+            setApiError={setApiError}
+            onSwitchToRegister={() => setActiveModal("register")}
+          />
+          <EditProfileModal
+            isOpen={activeModal === "edit-profile"}
+            handleCloseModal={handleCloseModal}
+            handleSubmit={handleEditProfile}
+            apiError={apiError}
+            setApiError={setApiError}
+            currentUser={currentUser}
+          />
+          <ConfirmDeleteModal
+            isOpen={activeModal === "confirm-delete"}
+            onClose={handleCloseModal}
+            onConfirm={handleConfirmDelete}
+          />
+          {locationModalOpen && (
+            <LocationModal
+              onClose={handleCloseLocationModal}
+              onUpdateLocation={handleUpdateLocation}
+            />
+          )}
+        </CurrentTemperatureUnitContext.Provider>
+      </div>
+    </CurrentUserContext.Provider>
   );
 }
 

@@ -1,34 +1,39 @@
 import "../index.css";
-import ItemCard from "./ItemCard.jsx";
+import ItemCard from "./ItemCard";
 
 function ClothesSection({
   clothingItems,
+  isProfile,
   handleOpenItemModal,
   handleOpenAddGarmentModal,
-  isProfile,
+  currentUser,
 }) {
   return (
     <section className="clothes-section">
-      <div className="clothes-section__row">
-        Your items
-        <button
-          className="clothes-section__button-add-new"
-          onClick={handleOpenAddGarmentModal}
-        >
-          + Add new
-        </button>
-      </div>
+      {isProfile && (
+        <div className="clothes-section__header">
+          <h2 className="clothes-section__title">Your Items</h2>
+          <button
+            className="clothes-section__add-button"
+            onClick={handleOpenAddGarmentModal}
+          >
+            + Add New
+          </button>
+        </div>
+      )}
       <ul className="clothes-section__card-list">
-        {clothingItems.map((item) => (
-          <ItemCard
-            key={item._id}
-            data={item}
-            onCardClick={handleOpenItemModal}
-            isProfile={isProfile}
-          />
-        ))}
+        {clothingItems
+          .filter((item) => item.owner === currentUser?._id)
+          .map((item) => (
+            <ItemCard
+              key={item._id}
+              item={item}
+              onCardClick={handleOpenItemModal}
+            />
+          ))}
       </ul>
     </section>
   );
 }
+
 export default ClothesSection;

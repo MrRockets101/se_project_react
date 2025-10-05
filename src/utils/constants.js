@@ -6,7 +6,6 @@ function getWeatherApiUrl(latitude, longitude) {
 
 const IpAPIKey = "f4e039cced363b";
 
-// Your backend API URL
 const BASE_URL = "http://localhost:3001";
 
 export { APIKey, getWeatherApiUrl, IpAPIKey, BASE_URL };
