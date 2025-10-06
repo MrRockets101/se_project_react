@@ -4,7 +4,7 @@
   flex-direction: column;
 }
 
-.clothes-section__row {
+.clothes-section__header {
   display: flex;
   align-items: center;
   gap: 20px;

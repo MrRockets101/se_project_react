@@ -22,28 +22,20 @@ function EditProfileModal({
 
   const customValidate = (v, setErrs, setDisabled) => {
     const errs = {};
-    let isValid = true;
+    let isValid = false; // default to false
 
-    if (!v.name) {
-      errs.name = getErrorMessage("required", "name");
-      isValid = false;
-    } else if (v.name.length < 2) {
-      errs.name = getErrorMessage(
-        "minLength",
-        "name",
-        "Name must be at least 2 characters."
-      );
-      isValid = false;
+    if (v.name && v.name.length < 2) {
+      errs.name = getErrorMessage;
     }
-    if (!v.avatar) {
-      errs.avatar = getErrorMessage("required", "avatar");
-      isValid = false;
-    } else if (
+    if (
+      v.avatar &&
       !/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/.test(v.avatar)
     ) {
-      errs.avatar = getErrorMessage("invalidFormat", "url");
-      isValid = false;
+      errs.avatar = getErrorMessage;
     }
+
+    // Consider form valid if at least one field is non-empty and valid
+    isValid = (!!v.name && !errs.name) || (!!v.avatar && !errs.avatar);
 
     setErrs(errs);
     setDisabled(!isValid);
@@ -68,17 +60,21 @@ function EditProfileModal({
     if (isOpen) {
       resetForm();
       setLocalApiError("");
-      if (setApiError) setApiError("");
+      if (setApiError) setApiError(""); // clear parent API errors
     }
-  }, [isOpen, resetForm, setApiError]);
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalApiError("");
     if (!validate()) return;
 
+    const partialData = {};
+    if (values.name) partialData.name = values.name;
+    if (values.avatar) partialData.avatar = values.avatar;
+
     try {
-      await onSubmitFromApp(values);
+      await onSubmitFromApp(partialData); // send only non-empty fields
       resetForm();
       handleCloseModal();
     } catch (error) {
@@ -88,7 +84,6 @@ function EditProfileModal({
       if (setApiError) setApiError(message);
     }
   };
-
   return (
     <div className={`modal${isOpen ? " modal_is-opened" : ""}`}>
       <div className="modal__container modal__container_form" ref={modalRef}>

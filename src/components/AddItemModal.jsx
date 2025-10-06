@@ -41,7 +41,7 @@ function AddItemModal({
       setLocalApiError("");
       if (setApiError) setApiError("");
     }
-  }, [isOpen, resetForm, setApiError]);
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -14,7 +14,7 @@ function ClothesSection({
         <div className="clothes-section__header">
           <h2 className="clothes-section__title">Your Items</h2>
           <button
-            className="clothes-section__add-button"
+            className="clothes-section__button-add-new"
             onClick={handleOpenAddGarmentModal}
           >
             + Add New
@@ -27,8 +27,9 @@ function ClothesSection({
           .map((item) => (
             <ItemCard
               key={item._id}
-              item={item}
+              data={item}
               onCardClick={handleOpenItemModal}
+              isProfile={isProfile}
             />
           ))}
       </ul>
