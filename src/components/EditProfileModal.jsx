@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import "../index.css";
 import { useForm } from "../hooks/useForm";
 import { useModalClose } from "../hooks/useModalClose";
+import { getErrorMessage } from "../utils/errorMessages";
 
 function EditProfileModal({
   isOpen,
@@ -24,19 +25,23 @@ function EditProfileModal({
     let isValid = true;
 
     if (!v.name) {
-      errs.name = "Name is required.";
+      errs.name = getErrorMessage("required", "name");
       isValid = false;
     } else if (v.name.length < 2) {
-      errs.name = "Name must be at least 2 characters.";
+      errs.name = getErrorMessage(
+        "minLength",
+        "name",
+        "Name must be at least 2 characters."
+      );
       isValid = false;
     }
     if (!v.avatar) {
-      errs.avatar = "Avatar URL is required.";
+      errs.avatar = getErrorMessage("required", "avatar");
       isValid = false;
     } else if (
       !/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/.test(v.avatar)
     ) {
-      errs.avatar = "Invalid URL format.";
+      errs.avatar = getErrorMessage("invalidFormat", "url");
       isValid = false;
     }
 
@@ -61,7 +66,7 @@ function EditProfileModal({
 
   useEffect(() => {
     if (isOpen) {
-      resetForm(); // Pre-fill with currentUser data via initialValues
+      resetForm();
       setLocalApiError("");
       if (setApiError) setApiError("");
     }
@@ -78,7 +83,7 @@ function EditProfileModal({
       handleCloseModal();
     } catch (error) {
       console.error("Failed to update profile:", error);
-      const message = error.message || "Failed to update profile.";
+      const message = error.message || getErrorMessage("apiGeneric");
       setLocalApiError(message);
       if (setApiError) setApiError(message);
     }
@@ -134,17 +139,17 @@ function EditProfileModal({
             )}
           </fieldset>
 
-          {localApiError || parentApiError ? (
-            <p className="modal__error-message modal__error-message_api">
+          {(localApiError || parentApiError) && (
+            <p className="modal__error-message">
               {localApiError || parentApiError}
             </p>
-          ) : null}
+          )}
           <div className="modal__button-container">
             <button
               className="modal__submit-button"
               type="submit"
               disabled={isButtonDisabled}
-              style={{ backgroundColor: "#007bff", color: "#fff" }} // Figma blue
+              style={{ backgroundColor: "#007bff", color: "#fff" }}
             >
               Save changes
             </button>

@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import "../index.css";
 import { useModalClose } from "../hooks/useModalClose";
+import { getErrorMessage } from "../utils/errorMessages";
 
 function ModalWithForm({
   isOpen,
@@ -104,11 +105,7 @@ function ModalWithForm({
             )}
           </fieldset>
 
-          {apiError && (
-            <p className="modal__error-message modal__error-message_api">
-              {apiError}
-            </p>
-          )}
+          {apiError && <p className="modal__error-message">{apiError}</p>}
 
           <button
             className="modal__submit-button"

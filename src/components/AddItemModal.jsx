@@ -2,16 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import "../index.css";
 import ModalWithForm from "./ModalWithForm";
 import { useForm } from "../hooks/useForm";
+import { getErrorMessage } from "../utils/errorMessages";
 
 function AddItemModal({
   isOpen,
-  handleSubmit: onSubmitFromApp, // API call from parent
+  handleSubmit: onSubmitFromApp,
   title,
   buttonText,
   name,
   handleCloseModal,
   apiError: parentApiError,
-  setApiError, // pass this from App.jsx to update API errors
+  setApiError,
   categories,
 }) {
   const initialValues = useMemo(
@@ -53,9 +54,9 @@ function AddItemModal({
       handleCloseModal();
     } catch (error) {
       console.error("Failed to add item:", error);
-      const message = error.message || "Failed to add item.";
+      const message = error.message || getErrorMessage("apiGeneric");
       setLocalApiError(message);
-      if (setApiError) setApiError(message); // propagate to App if needed
+      if (setApiError) setApiError(message);
     }
   };
 

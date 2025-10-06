@@ -1,8 +1,16 @@
 import { useContext } from "react";
 import "../index.css";
 import CurrentUserContext from "../Context/CurrentUserContext";
+import { getErrorMessage } from "../utils/errorMessages";
 
-function ItemModal({ card, isOpen, handleCloseModal, handleDeleteItem }) {
+function ItemModal({
+  card,
+  isOpen,
+  handleCloseModal,
+  handleDeleteItem,
+  apiError,
+  setApiError,
+}) {
   const currentUser = useContext(CurrentUserContext);
 
   const isOwn = currentUser?._id && card.owner === currentUser._id;
@@ -35,6 +43,7 @@ function ItemModal({ card, isOpen, handleCloseModal, handleDeleteItem }) {
             Delete item
           </button>
         </div>
+        {apiError && <p className="modal__error-message">{apiError}</p>}
       </div>
     </div>
   );

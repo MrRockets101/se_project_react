@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import "../index.css";
 import { useForm } from "../hooks/useForm";
 import { useModalClose } from "../hooks/useModalClose";
+import { getErrorMessage } from "../utils/errorMessages";
 
 function LoginModal({
   isOpen,
@@ -24,14 +25,14 @@ function LoginModal({
     let isValid = true;
 
     if (!v.email) {
-      errs.email = "Email is required.";
+      errs.email = getErrorMessage("required", "email");
       isValid = false;
     } else if (!/^\S+@\S+\.\S+$/.test(v.email)) {
-      errs.email = "Invalid email format.";
+      errs.email = getErrorMessage("invalidFormat", "email");
       isValid = false;
     }
     if (!v.password) {
-      errs.password = "Password is required.";
+      errs.password = getErrorMessage("required", "password");
       isValid = false;
     }
 
@@ -73,7 +74,7 @@ function LoginModal({
       handleCloseModal();
     } catch (error) {
       console.error("Failed to login:", error);
-      const message = error.message || "Failed to login.";
+      const message = error.message || getErrorMessage("apiGeneric");
       setLocalApiError(message);
       if (setApiError) setApiError(message);
     }
@@ -123,11 +124,11 @@ function LoginModal({
             )}
           </fieldset>
 
-          {localApiError || parentApiError ? (
-            <p className="modal__error-message modal__error-message_api">
+          {(localApiError || parentApiError) && (
+            <p className="modal__error-message">
               {localApiError || parentApiError}
             </p>
-          ) : null}
+          )}
           <div className="modal__button-container">
             <button
               className="modal__submit-button"

@@ -2,6 +2,7 @@ import "../index.css";
 import { useRef, useState } from "react";
 import { useWeatherLocation } from "../hooks/useWeatherLocation";
 import { useModalClose } from "../hooks/useModalClose";
+import { getErrorMessage } from "../utils/errorMessages";
 
 function LocationModal({ onClose, onUpdateLocation }) {
   const [latInput, setLatInput] = useState("");
@@ -20,7 +21,13 @@ function LocationModal({ onClose, onUpdateLocation }) {
     e.preventDefault();
 
     if (!latInput || !lngInput) {
-      setFormError("Latitude and longitude are required");
+      setFormError(
+        getErrorMessage(
+          "required",
+          "coordinates",
+          "Latitude and longitude are required"
+        )
+      );
       return;
     }
 
@@ -28,7 +35,9 @@ function LocationModal({ onClose, onUpdateLocation }) {
     const longitude = parseFloat(lngInput);
 
     if (isNaN(latitude) || isNaN(longitude)) {
-      setFormError("Invalid coordinates");
+      setFormError(
+        getErrorMessage("invalidFormat", "coordinates", "Invalid coordinates")
+      );
       return;
     }
 
@@ -37,7 +46,9 @@ function LocationModal({ onClose, onUpdateLocation }) {
       setFormError(null);
       onClose();
     } catch (error) {
-      setFormError("Failed to update location");
+      setFormError(
+        getErrorMessage("apiGeneric", null, "Failed to update location")
+      );
     }
   };
 
@@ -46,7 +57,9 @@ function LocationModal({ onClose, onUpdateLocation }) {
       await detectIpLocation();
       onClose();
     } catch (error) {
-      setApiLocationError("Failed to detect location via IP");
+      setApiLocationError(
+        getErrorMessage("apiGeneric", null, "Failed to detect location via IP")
+      );
     }
   };
 
@@ -57,7 +70,7 @@ function LocationModal({ onClose, onUpdateLocation }) {
           <button className="modal__close-button" onClick={onClose} />
           <h2 className="modal__title-location">Select location</h2>
 
-          {formError && <p className="modal__error">{formError}</p>}
+          {formError && <p className="modal__error-message">{formError}</p>}
 
           <button
             className="modal__button-location"

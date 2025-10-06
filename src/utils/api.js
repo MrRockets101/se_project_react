@@ -1,5 +1,5 @@
-import { BASE_URL } from "./constants";
 import { fetchJson } from "./fetchJson";
+import { BASE_URL } from "./constants";
 
 export function register({ name, avatar, email, password }) {
   return fetchJson(
@@ -9,7 +9,9 @@ export function register({ name, avatar, email, password }) {
       body: JSON.stringify({ name, avatar, email, password }),
     },
     "Registration failed"
-  );
+  ).catch((error) => {
+    throw error;
+  });
 }
 
 export function login({ email, password }) {
@@ -20,16 +22,26 @@ export function login({ email, password }) {
       body: JSON.stringify({ email, password }),
     },
     "Login failed"
-  ).then((data) => {
-    if (data.token) {
-      localStorage.setItem("jwt", data.token);
-    }
-    return data;
-  });
+  )
+    .then((data) => {
+      if (data.token) {
+        localStorage.setItem("jwt", data.token);
+      }
+      return data;
+    })
+    .catch((error) => {
+      throw error;
+    });
 }
 
 export function getCurrentUser() {
-  return fetchJson(`${BASE_URL}/users`, {}, "Failed to fetch user profile");
+  return fetchJson(
+    `${BASE_URL}/users`,
+    {},
+    "Failed to fetch user profile"
+  ).catch((error) => {
+    throw error;
+  });
 }
 
 export function updateCurrentUser({ name, avatar }) {
@@ -40,7 +52,9 @@ export function updateCurrentUser({ name, avatar }) {
       body: JSON.stringify({ name, avatar }),
     },
     "Failed to update profile"
-  );
+  ).catch((error) => {
+    throw error;
+  });
 }
 
 export async function getItems() {
@@ -51,17 +65,9 @@ export async function getItems() {
       "Error fetching items"
     );
 
-    // If the response is an array, return it directly; otherwise, try result.data
-    if (Array.isArray(result)) {
-      return result;
-    } else if (result && Array.isArray(result.data)) {
-      return result.data;
-    } else {
-      return []; // fallback if neither structure matches
-    }
-  } catch (err) {
-    console.error("getItems error:", err);
-    return [];
+    return Array.isArray(result) ? result : [];
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -73,7 +79,22 @@ export function addItem(newItem) {
       body: JSON.stringify(newItem),
     },
     "Error adding item"
-  );
+  ).catch((error) => {
+    throw error;
+  });
+}
+
+export function updateItem(id, imageUrl) {
+  return fetchJson(
+    `${BASE_URL}/items/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ imageUrl }),
+    },
+    "Error updating item"
+  ).catch((error) => {
+    throw error;
+  });
 }
 
 export function deleteItem(id) {
@@ -83,7 +104,9 @@ export function deleteItem(id) {
       method: "DELETE",
     },
     "Error deleting item"
-  );
+  ).catch((error) => {
+    throw error;
+  });
 }
 
 export function likeItem(id) {
@@ -93,7 +116,9 @@ export function likeItem(id) {
       method: "PUT",
     },
     "Error liking item"
-  );
+  ).catch((error) => {
+    throw error;
+  });
 }
 
 export function unlikeItem(id) {
@@ -103,5 +128,7 @@ export function unlikeItem(id) {
       method: "DELETE",
     },
     "Error unliking item"
-  );
+  ).catch((error) => {
+    throw error;
+  });
 }

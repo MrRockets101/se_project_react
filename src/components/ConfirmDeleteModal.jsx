@@ -1,8 +1,15 @@
 import React, { useRef } from "react";
 import "../index.css";
 import { useModalClose } from "../hooks/useModalClose";
+import { getErrorMessage } from "../utils/errorMessages";
 
-function ConfirmDeleteModal({ isOpen, onClose, onConfirm }) {
+function ConfirmDeleteModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  apiError,
+  setApiError,
+}) {
   const modalRef = useRef(null);
 
   useModalClose(isOpen, modalRef, onClose);
@@ -22,6 +29,7 @@ function ConfirmDeleteModal({ isOpen, onClose, onConfirm }) {
           <button className="modal__button-cancel" onClick={onClose}>
             Cancel
           </button>
+          {apiError && <p className="modal__error-message">{apiError}</p>}
         </div>
       </div>
     </div>

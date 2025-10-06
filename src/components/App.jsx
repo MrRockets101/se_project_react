@@ -7,6 +7,7 @@ import {
   login,
   getCurrentUser,
   updateCurrentUser,
+  updateItem,
 } from "../utils/api";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Profile from "./Profile";
@@ -27,6 +28,7 @@ import { useWeatherLocation } from "../hooks/useWeatherLocation";
 import LocationModal from "./LocationModal";
 import CurrentUserContext from "../Context/CurrentUserContext";
 import ErrorBoundary from "./ErrorBoundary";
+import ErrorModal from "./ErrorModal"; // Import the updated modal
 
 function ProtectedRoute({ children, isLoggedIn }) {
   return isLoggedIn ? children : <Navigate to="/" />;
@@ -40,6 +42,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [showErrorModal, setShowErrorModal] = useState(false); // New state for error modal
 
   const handleOpenLocationModal = () => setLocationModalOpen(true);
   const handleCloseLocationModal = () => setLocationModalOpen(false);
@@ -47,8 +50,10 @@ function App() {
     try {
       await updateLocation({ latitude, longitude });
       setLocationModalOpen(false);
-    } catch {
-      setApiLocationError("Failed to update location.");
+    } catch (error) {
+      console.error("Failed to update location:", error);
+      setApiError(error.message || "Failed to update location.");
+      setShowErrorModal(true); // Trigger error modal on failure
     }
   };
 
@@ -106,9 +111,11 @@ function App() {
       );
       setItemToDelete(null);
       handleCloseModal();
-    } catch (err) {
-      console.error("Failed to delete item", err);
-      setApiError("Failed to delete item.");
+      setApiError("");
+    } catch (error) {
+      console.error("Failed to delete item:", error);
+      setApiError(error.message); // e.g., "You can only delete your own items"
+      setShowErrorModal(true); // Trigger error modal on failure
     }
   };
 
@@ -158,14 +165,18 @@ function App() {
     try {
       const user = await register(values);
       setCurrentUser(user);
-      setIsLoggedIn(true);
-      const { email, password } = values;
-      const loginResponse = await login({ email, password });
+
+      const loginResponse = await login({
+        email: values.email,
+        password: values.password,
+      });
       localStorage.setItem("jwt", loginResponse.token);
-      setApiError("");
+      setIsLoggedIn(true);
+      handleCloseModal();
     } catch (error) {
       console.error("Registration failed:", error);
-      throw new Error(error.message || "Failed to register.");
+      setApiError(error.message);
+      setShowErrorModal(true);
     }
   };
 
@@ -176,10 +187,11 @@ function App() {
       const user = await getCurrentUser();
       setCurrentUser(user);
       setIsLoggedIn(true);
-      setApiError("");
+      handleCloseModal();
     } catch (error) {
       console.error("Login failed:", error);
-      throw new Error(error.message || "Failed to login.");
+      setApiError(error.message);
+      setShowErrorModal(true);
     }
   };
 
@@ -193,10 +205,31 @@ function App() {
     try {
       const updatedUser = await updateCurrentUser(values);
       setCurrentUser(updatedUser);
-      setApiError("");
+      handleCloseModal();
     } catch (error) {
       console.error("Profile update failed:", error);
-      throw new Error(error.message || "Failed to update profile.");
+      setApiError(error.message);
+      setShowErrorModal(true);
+    }
+  };
+
+  const handleSubmitAddItem = async (values) => {
+    if (!isLoggedIn) {
+      throw new Error("You must be logged in to add items.");
+    }
+    try {
+      const newItem = {
+        name: values.name,
+        imageUrl: values.image,
+        weather: values.weather.toLowerCase(),
+      };
+      const savedItem = await addItem(newItem);
+      setClothingItems((prev) => [savedItem, ...prev]);
+      handleCloseModal();
+    } catch (error) {
+      console.error("Failed to add item:", error);
+      setApiError(error.message);
+      setShowErrorModal(true);
     }
   };
 
@@ -223,34 +256,24 @@ function App() {
     checkToken();
   }, [checkToken]);
 
-  const handleSubmitAddItem = async (values) => {
-    if (!isLoggedIn) {
-      throw new Error("You must be logged in to add items.");
-    }
-    try {
-      const newItem = {
-        name: values.name,
-        imageUrl: values.image,
-        weather: values.weather.toLowerCase(),
-      };
-      const savedItem = await addItem(newItem);
-      setClothingItems((prev) => [savedItem, ...prev]);
-    } catch (error) {
-      console.error("Failed to add item:", error);
-      throw new Error(error.message || "Failed to add item.");
-    }
-  };
-
   useEffect(() => {
-    getItems()
-      .then((items) => {
-        console.log("Fetched items:", items);
-        setClothingItems(items);
-      })
-      .catch((err) => {
-        console.error("Error fetching items:", err);
+    const fetchItems = async () => {
+      try {
+        const items = await getItems();
+        console.log("Fetched items response:", items);
+        if (Array.isArray(items)) {
+          setClothingItems(items);
+        } else {
+          console.warn("Items response is not an array:", items);
+          setClothingItems([]);
+        }
+      } catch (error) {
+        console.error("Error fetching items:", error);
+        setApiError(error.message);
         setClothingItems([]);
-      });
+      }
+    };
+    fetchItems();
   }, []);
 
   return (
@@ -305,6 +328,8 @@ function App() {
             isOpen={activeModal === "item-modal"}
             handleCloseModal={handleCloseModal}
             handleDeleteItem={handleDeleteItem}
+            apiError={apiError}
+            setApiError={setApiError}
           />
           <AddItemModal
             isOpen={activeModal === "item-garment-modal"}
@@ -345,13 +370,23 @@ function App() {
             isOpen={activeModal === "confirm-delete"}
             onClose={handleCloseModal}
             onConfirm={handleConfirmDelete}
+            apiError={apiError}
+            setApiError={setApiError}
           />
           {locationModalOpen && (
             <LocationModal
               onClose={handleCloseLocationModal}
               onUpdateLocation={handleUpdateLocation}
+              apiError={apiError}
+              setApiError={setApiError}
             />
           )}
+          <ErrorModal
+            isOpen={showErrorModal}
+            message={apiError}
+            title="Submission Error"
+            onClose={() => setShowErrorModal(false)}
+          />
         </CurrentTemperatureUnitContext.Provider>
       </div>
     </CurrentUserContext.Provider>

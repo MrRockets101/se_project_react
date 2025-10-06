@@ -16,11 +16,21 @@ export async function fetchJson(
     });
 
     if (!response.ok) {
-      throw new Error(`${errorMessage}: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      const backendMessage = errorData.message || errorMessage;
+      const error = new Error(backendMessage);
+      error.status = response.status;
+      throw error;
     }
 
     return await response.json();
   } catch (err) {
+    if (err.status) {
+      console.error(
+        `API Error - Status: ${err.status}, Message: ${err.message}`
+      );
+      throw new Error(err.message);
+    }
     throw new Error(err.message || errorMessage);
   }
 }

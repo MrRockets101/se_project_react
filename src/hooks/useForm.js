@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { getErrorMessage } from "../utils/errorMessages";
 
 export function useForm(initialValues = {}, customValidate = null) {
   const [values, setValues] = useState(initialValues);
@@ -10,15 +11,15 @@ export function useForm(initialValues = {}, customValidate = null) {
     let isValid = true;
 
     if (!v.name) {
-      errs.name = "Name is required.";
+      errs.name = getErrorMessage("required", "name");
       isValid = false;
     }
     if (!v.image) {
-      errs.image = "Image URL is required.";
+      errs.image = getErrorMessage("required", "image");
       isValid = false;
     }
     if (!v.weather) {
-      errs.weather = "Please select a weather type.";
+      errs.weather = getErrorMessage("required", "weather");
       isValid = false;
     }
 
@@ -53,11 +54,17 @@ export function useForm(initialValues = {}, customValidate = null) {
     validate(updatedValues); // Trigger validation on change
   };
 
-  const resetForm = useCallback(() => {
-    setValues(initialValues);
-    setErrors({});
-    setIsButtonDisabled(true);
-  }, [initialValues]);
+  const resetForm = useCallback(
+    (preserveValues = {}) => {
+      setValues((prev) => ({
+        ...initialValues,
+        ...preserveValues, // Preserve specific fields if provided
+      }));
+      setErrors({});
+      setIsButtonDisabled(true);
+    },
+    [initialValues]
+  );
 
   return {
     values,
