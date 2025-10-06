@@ -16,13 +16,13 @@ function RegisterModal({
   const [localValues, setLocalValues] = useState(
     initialValues || { email: "", password: "", name: "", avatar: "" }
   );
-  const [localApiError, setLocalApiError] = useState(""); // Local state to preserve API error
+  const [localApiError, setLocalApiError] = useState(""); //   preserve API error to Local state
 
   useEffect(() => {
     if (isOpen && parentApiError && localApiError !== parentApiError) {
-      setLocalApiError(parentApiError); // Update only if different to avoid loop
+      setLocalApiError(parentApiError); //  if different, Update
     }
-  }, [isOpen, parentApiError, localApiError]); // Added localApiError to deps to prevent redundant updates
+  }, [isOpen, parentApiError, localApiError]); // prevent redundant updates
 
   const customValidate = (v, setErrs, setDisabled) => {
     const errs = {};
@@ -75,12 +75,12 @@ function RegisterModal({
     null,
     (newValues) => setLocalValues(newValues),
     () => setLocalApiError("")
-  ); // Pass callback to clear localApiError on change
+  ); // clear localApiError on change
 
   const modalRef = useRef(null);
   useModalClose(isOpen, modalRef, handleCloseModal);
 
-  // Assign resetForm to the ref provided by App.jsx
+  // helps pass error in registerModal to errorModal
   useEffect(() => {
     if (resetFormRef) {
       resetFormRef.current = resetForm;

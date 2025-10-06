@@ -1,5 +1,5 @@
 import { Component } from "react";
-//This component will catch JavaScript errors anywhere in its child component tree, log the error, and display a fallback UI (e.g., an error message)
+// catch JavaScript errors anywhere in child component tree, log the error, display a fallback
 class ErrorBoundary extends Component {
   state = { hasError: false, error: null, errorInfo: null };
 
@@ -9,14 +9,14 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log the error to the console (you can also send it to an error tracking service)
+    // Log error to console
     console.error("Error caught by ErrorBoundary:", error, errorInfo);
     this.setState({ error, errorInfo });
   }
 
   render() {
     if (this.state.hasError) {
-      // Fallback UI when an error occurs
+      // Fallback on error
       return (
         <div className="error-boundary">
           <h1>Something went wrong.</h1>

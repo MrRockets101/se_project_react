@@ -29,7 +29,7 @@ import LocationModal from "./LocationModal";
 import CurrentUserContext from "../Context/CurrentUserContext";
 import ErrorBoundary from "./ErrorBoundary";
 import ErrorModal from "./ErrorModal";
-import RegistrationSuccessModal from "./RegistrationSuccessModal"; // New component
+import RegistrationSuccessModal from "./RegistrationSuccessModal";
 
 function ProtectedRoute({ children, isLoggedIn }) {
   return isLoggedIn ? children : <Navigate to="/" />;
@@ -45,7 +45,7 @@ function App() {
   const [apiError, setApiError] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorTriggerModal, setErrorTriggerModal] = useState(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false); // For registration success
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const resetFormRef = useRef(null);
   const [registerValues, setRegisterValues] = useState({
     email: "",
@@ -163,7 +163,7 @@ function App() {
 
   const handleCloseModal = () => {
     setActiveModal("");
-    setShowSuccessModal(false); // Close success modal when any modal closes
+    setShowSuccessModal(false);
   };
 
   const handleRegister = async (values) => {
@@ -303,7 +303,7 @@ function App() {
 
   const handleErrorModalClose = () => {
     setShowErrorModal(false);
-    // Clear apiError only if not related to register to avoid loop
+    // avoid loop by Clearing apiError, only if unrelated to register
     if (errorTriggerModal !== "register") {
       setApiError("");
     }
@@ -314,7 +314,7 @@ function App() {
         "registerValues:",
         { ...registerValues, password: "****" }
       );
-      resetFormRef.current({ password: "" }, registerValues); // Pass registerValues as externalValues
+      resetFormRef.current({ password: "" }, registerValues); // registerValues as externalValues
       if (activeModal !== "register") {
         setActiveModal("register"); // Reopen RegisterModal if closed
       }
@@ -399,7 +399,7 @@ function App() {
             setApiError={setApiError}
             onSwitchToLogin={() => setActiveModal("login")}
             resetFormRef={resetFormRef}
-            initialValues={registerValues} // Pass lifted state as initialValues
+            initialValues={registerValues}
           />
           <LoginModal
             isOpen={activeModal === "login"}
