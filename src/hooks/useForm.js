@@ -5,7 +5,8 @@ export function useForm(
   initialValues = {},
   customValidate = null,
   externalValues = null,
-  onValuesChange
+  onValuesChange,
+  onFieldChangeCallback // New prop to handle additional logic on change
 ) {
   const [values, setValues] = useState(externalValues || initialValues); // Use external values if provided
   const [errors, setErrors] = useState({}); // Ensure errors is always an object
@@ -60,12 +61,18 @@ export function useForm(
     [values, customValidate]
   );
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const updatedValues = { ...values, [name]: value };
-    setValues(updatedValues);
-    validate(updatedValues); // Trigger validation on change
-  };
+  const handleChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      const updatedValues = { ...values, [name]: value };
+      setValues(updatedValues);
+      validate(updatedValues); // Trigger validation on change
+      if (onFieldChangeCallback) {
+        onFieldChangeCallback(); // Call callback to clear localApiError
+      }
+    },
+    [values, validate, onFieldChangeCallback]
+  );
 
   const resetForm = useCallback(
     (preserveValues = {}, externalValues = null) => {

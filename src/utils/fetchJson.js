@@ -1,3 +1,5 @@
+import { errorMappings } from "./errorMappings";
+
 export async function fetchJson(
   url,
   options = { method: "GET" },
@@ -14,12 +16,18 @@ export async function fetchJson(
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
+    console.log("Fetch request with token:", token);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       const backendMessage = errorData.message || errorMessage;
       const error = new Error(backendMessage);
       error.status = response.status;
+      // Use errorMappings for consistent messages
+      error.message =
+        errorMappings[response.status] ||
+        backendMessage ||
+        errorMappings.default;
       throw error;
     }
 

@@ -48,24 +48,25 @@ function LoginModal({
     validate,
     resetForm,
     isButtonDisabled,
-  } = useForm(initialValues, customValidate);
+  } = useForm(initialValues, customValidate, null, null, () =>
+    setLocalApiError("")
+  );
 
   const [localApiError, setLocalApiError] = useState("");
-
   const modalRef = useRef(null);
-  useModalClose(isOpen, modalRef, handleCloseModal);
+  const resetFormRef = useRef(resetForm); // Stabilize resetForm
+  const setApiErrorRef = useRef(setApiError); // Stabilize setApiError
 
   useEffect(() => {
     if (isOpen) {
-      resetForm();
+      resetFormRef.current();
       setLocalApiError("");
-      if (setApiError) setApiError("");
+      setApiErrorRef.current(""); // Use ref to avoid re-render loop
     }
-  }, [isOpen, resetForm, setApiError]);
+  }, [isOpen]); // Only depends on isOpen
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLocalApiError("");
     if (!validate()) return;
 
     try {
@@ -76,9 +77,11 @@ function LoginModal({
       console.error("Failed to login:", error);
       const message = error.message || getErrorMessage("apiGeneric");
       setLocalApiError(message);
-      if (setApiError) setApiError(message);
+      setApiErrorRef.current(message); // Use ref for error propagation
     }
   };
+
+  useModalClose(isOpen, modalRef, handleCloseModal);
 
   return (
     <div className={`modal${isOpen ? " modal_is-opened" : ""}`}>

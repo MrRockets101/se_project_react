@@ -36,7 +36,7 @@ export function login({ email, password }) {
 
 export function getCurrentUser() {
   return fetchJson(
-    `${BASE_URL}/users`,
+    `${BASE_URL}/users`, // Changed from /users/me to match backend
     {},
     "Failed to fetch user profile"
   ).catch((error) => {
@@ -46,7 +46,7 @@ export function getCurrentUser() {
 
 export function updateCurrentUser({ name, avatar }) {
   return fetchJson(
-    `${BASE_URL}/users`,
+    `${BASE_URL}/users`, // Changed from /users/me to match backend
     {
       method: "PATCH",
       body: JSON.stringify({ name, avatar }),

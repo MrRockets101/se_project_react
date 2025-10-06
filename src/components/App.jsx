@@ -29,6 +29,7 @@ import LocationModal from "./LocationModal";
 import CurrentUserContext from "../Context/CurrentUserContext";
 import ErrorBoundary from "./ErrorBoundary";
 import ErrorModal from "./ErrorModal";
+import RegistrationSuccessModal from "./RegistrationSuccessModal"; // New component
 
 function ProtectedRoute({ children, isLoggedIn }) {
   return isLoggedIn ? children : <Navigate to="/" />;
@@ -44,6 +45,7 @@ function App() {
   const [apiError, setApiError] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorTriggerModal, setErrorTriggerModal] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false); // For registration success
   const resetFormRef = useRef(null);
   const [registerValues, setRegisterValues] = useState({
     email: "",
@@ -161,11 +163,12 @@ function App() {
 
   const handleCloseModal = () => {
     setActiveModal("");
+    setShowSuccessModal(false); // Close success modal when any modal closes
   };
 
   const handleRegister = async (values) => {
     try {
-      setRegisterValues(values); // Store the submitted values
+      setRegisterValues(values);
       const user = await register(values);
       setCurrentUser(user);
 
@@ -173,10 +176,20 @@ function App() {
         email: values.email,
         password: values.password,
       });
-      localStorage.setItem("jwt", loginResponse.token);
-      setIsLoggedIn(true);
-      handleCloseModal();
+      if (loginResponse.token) {
+        localStorage.setItem("jwt", loginResponse.token);
+        console.log("Token stored:", loginResponse.token); // Debug
+        const userData = await getCurrentUser();
+        console.log("getCurrentUser response:", userData); // Debug
+        setCurrentUser(userData);
+        setIsLoggedIn(true);
+        setShowSuccessModal(true);
+        handleCloseModal();
+      } else {
+        throw new Error("Login failed after registration");
+      }
     } catch (error) {
+      console.error("Register error:", error);
       setApiError(error.message);
       setShowErrorModal(true);
       setErrorTriggerModal("register");
@@ -186,12 +199,22 @@ function App() {
   const handleLogin = async (values) => {
     try {
       const response = await login(values);
-      localStorage.setItem("jwt", response.token);
-      const user = await getCurrentUser();
-      setCurrentUser(user);
-      setIsLoggedIn(true);
-      handleCloseModal();
+      if (response && response.token) {
+        localStorage.setItem("jwt", response.token);
+        console.log("Token set:", response.token); // Debug log
+        const user = await getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+          handleCloseModal();
+        } else {
+          throw new Error("User data not received after login");
+        }
+      } else {
+        throw new Error("Login failed: No token received");
+      }
     } catch (error) {
+      console.error("Login error:", error);
       setApiError(error.message);
       setShowErrorModal(true);
       setErrorTriggerModal("login");
@@ -244,6 +267,7 @@ function App() {
         setCurrentUser(user);
         setIsLoggedIn(true);
       } catch (error) {
+        console.error("Token validation failed:", error);
         localStorage.removeItem("jwt");
         setIsLoggedIn(false);
         setCurrentUser(null);
@@ -279,7 +303,10 @@ function App() {
 
   const handleErrorModalClose = () => {
     setShowErrorModal(false);
-    setApiError("");
+    // Clear apiError only if not related to register to avoid loop
+    if (errorTriggerModal !== "register") {
+      setApiError("");
+    }
     if (errorTriggerModal === "register" && resetFormRef.current) {
       console.log(
         "Triggering repopulation in RegisterModal, activeModal:",
@@ -292,6 +319,10 @@ function App() {
         setActiveModal("register"); // Reopen RegisterModal if closed
       }
     }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
   };
 
   return (
@@ -406,6 +437,12 @@ function App() {
             message={apiError}
             title="Submission Error"
             onClose={handleErrorModalClose}
+          />
+          <RegistrationSuccessModal
+            isOpen={showSuccessModal}
+            message="Registration successful! You are now logged in."
+            title="Success"
+            onClose={handleSuccessModalClose}
           />
         </CurrentTemperatureUnitContext.Provider>
       </div>

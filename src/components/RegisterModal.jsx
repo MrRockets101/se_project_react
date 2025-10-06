@@ -16,6 +16,13 @@ function RegisterModal({
   const [localValues, setLocalValues] = useState(
     initialValues || { email: "", password: "", name: "", avatar: "" }
   );
+  const [localApiError, setLocalApiError] = useState(""); // Local state to preserve API error
+
+  useEffect(() => {
+    if (isOpen && parentApiError && localApiError !== parentApiError) {
+      setLocalApiError(parentApiError); // Update only if different to avoid loop
+    }
+  }, [isOpen, parentApiError, localApiError]); // Added localApiError to deps to prevent redundant updates
 
   const customValidate = (v, setErrs, setDisabled) => {
     const errs = {};
@@ -62,9 +69,13 @@ function RegisterModal({
     resetForm,
     isButtonDisabled,
     setSubmitSuccess,
-  } = useForm(localValues, customValidate, null, (newValues) =>
-    setLocalValues(newValues)
-  ); // Sync values with local state
+  } = useForm(
+    localValues,
+    customValidate,
+    null,
+    (newValues) => setLocalValues(newValues),
+    () => setLocalApiError("")
+  ); // Pass callback to clear localApiError on change
 
   const modalRef = useRef(null);
   useModalClose(isOpen, modalRef, handleCloseModal);
@@ -85,7 +96,7 @@ function RegisterModal({
     if (isOpen) {
       console.log("Modal opened, values:", { ...values, password: "****" }); // Mask password
     }
-  }, [isOpen, values]); // Removed setApiError call to preserve parentApiError
+  }, [isOpen, values]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -94,6 +105,7 @@ function RegisterModal({
     try {
       await onSubmitFromApp(values);
       setSubmitSuccess(true); // Signal success to trigger reset
+      setLocalApiError(""); // Clear local error on success
       resetForm(); // Ensure reset happens immediately on success
       handleCloseModal();
     } catch (error) {
@@ -103,8 +115,8 @@ function RegisterModal({
   };
 
   const getApiErrorForField = (fieldName) => {
-    if (parentApiError === "Email already exists" && fieldName === "email") {
-      return parentApiError;
+    if (localApiError === "Email already exists" && fieldName === "email") {
+      return localApiError;
     }
     return "";
   };
@@ -229,8 +241,8 @@ function RegisterModal({
           {isButtonDisabled && (
             <div>
               <p className="modal__error-message">{getSubmitErrorMessage()}</p>
-              {parentApiError && (
-                <p className="modal__error-message">{parentApiError}</p>
+              {localApiError && (
+                <p className="modal__error-message">{localApiError}</p>
               )}
             </div>
           )}
