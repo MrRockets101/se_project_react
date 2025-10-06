@@ -28,7 +28,7 @@ import { useWeatherLocation } from "../hooks/useWeatherLocation";
 import LocationModal from "./LocationModal";
 import CurrentUserContext from "../Context/CurrentUserContext";
 import ErrorBoundary from "./ErrorBoundary";
-import ErrorModal from "./ErrorModal"; // Import the updated modal
+import ErrorModal from "./ErrorModal";
 
 function ProtectedRoute({ children, isLoggedIn }) {
   return isLoggedIn ? children : <Navigate to="/" />;
@@ -42,7 +42,15 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [apiError, setApiError] = useState("");
-  const [showErrorModal, setShowErrorModal] = useState(false); // New state for error modal
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorTriggerModal, setErrorTriggerModal] = useState(null);
+  const resetFormRef = useRef(null);
+  const [registerValues, setRegisterValues] = useState({
+    email: "",
+    password: "",
+    name: "",
+    avatar: "",
+  }); // Lifted state
 
   const handleOpenLocationModal = () => setLocationModalOpen(true);
   const handleCloseLocationModal = () => setLocationModalOpen(false);
@@ -51,9 +59,9 @@ function App() {
       await updateLocation({ latitude, longitude });
       setLocationModalOpen(false);
     } catch (error) {
-      console.error("Failed to update location:", error);
-      setApiError(error.message || "Failed to update location.");
-      setShowErrorModal(true); // Trigger error modal on failure
+      setApiError(error.message);
+      setShowErrorModal(true);
+      setErrorTriggerModal("location");
     }
   };
 
@@ -111,11 +119,10 @@ function App() {
       );
       setItemToDelete(null);
       handleCloseModal();
-      setApiError("");
     } catch (error) {
-      console.error("Failed to delete item:", error);
-      setApiError(error.message); // e.g., "You can only delete your own items"
-      setShowErrorModal(true); // Trigger error modal on failure
+      setApiError(error.message);
+      setShowErrorModal(true);
+      setErrorTriggerModal("confirm-delete");
     }
   };
 
@@ -130,17 +137,14 @@ function App() {
       return;
     }
     setActiveModal("item-garment-modal");
-    setApiError("");
   };
 
   const handleOpenRegisterModal = () => {
     setActiveModal("register");
-    setApiError("");
   };
 
   const handleOpenLoginModal = () => {
     setActiveModal("login");
-    setApiError("");
   };
 
   const handleOpenEditProfileModal = () => {
@@ -149,7 +153,6 @@ function App() {
       return;
     }
     setActiveModal("edit-profile");
-    setApiError("");
   };
 
   const handleTempUnitChange = () => {
@@ -158,11 +161,11 @@ function App() {
 
   const handleCloseModal = () => {
     setActiveModal("");
-    setApiError("");
   };
 
   const handleRegister = async (values) => {
     try {
+      setRegisterValues(values); // Store the submitted values
       const user = await register(values);
       setCurrentUser(user);
 
@@ -174,9 +177,9 @@ function App() {
       setIsLoggedIn(true);
       handleCloseModal();
     } catch (error) {
-      console.error("Registration failed:", error);
       setApiError(error.message);
       setShowErrorModal(true);
+      setErrorTriggerModal("register");
     }
   };
 
@@ -189,9 +192,9 @@ function App() {
       setIsLoggedIn(true);
       handleCloseModal();
     } catch (error) {
-      console.error("Login failed:", error);
       setApiError(error.message);
       setShowErrorModal(true);
+      setErrorTriggerModal("login");
     }
   };
 
@@ -207,9 +210,9 @@ function App() {
       setCurrentUser(updatedUser);
       handleCloseModal();
     } catch (error) {
-      console.error("Profile update failed:", error);
       setApiError(error.message);
       setShowErrorModal(true);
+      setErrorTriggerModal("edit-profile");
     }
   };
 
@@ -227,9 +230,9 @@ function App() {
       setClothingItems((prev) => [savedItem, ...prev]);
       handleCloseModal();
     } catch (error) {
-      console.error("Failed to add item:", error);
       setApiError(error.message);
       setShowErrorModal(true);
+      setErrorTriggerModal("item-garment-modal");
     }
   };
 
@@ -241,7 +244,6 @@ function App() {
         setCurrentUser(user);
         setIsLoggedIn(true);
       } catch (error) {
-        console.error("Token validation failed:", error);
         localStorage.removeItem("jwt");
         setIsLoggedIn(false);
         setCurrentUser(null);
@@ -268,13 +270,29 @@ function App() {
           setClothingItems([]);
         }
       } catch (error) {
-        console.error("Error fetching items:", error);
         setApiError(error.message);
-        setClothingItems([]);
+        setShowErrorModal(true);
       }
     };
     fetchItems();
   }, []);
+
+  const handleErrorModalClose = () => {
+    setShowErrorModal(false);
+    setApiError("");
+    if (errorTriggerModal === "register" && resetFormRef.current) {
+      console.log(
+        "Triggering repopulation in RegisterModal, activeModal:",
+        activeModal,
+        "registerValues:",
+        { ...registerValues, password: "****" }
+      );
+      resetFormRef.current({ password: "" }, registerValues); // Pass registerValues as externalValues
+      if (activeModal !== "register") {
+        setActiveModal("register"); // Reopen RegisterModal if closed
+      }
+    }
+  };
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
@@ -349,6 +367,8 @@ function App() {
             apiError={apiError}
             setApiError={setApiError}
             onSwitchToLogin={() => setActiveModal("login")}
+            resetFormRef={resetFormRef}
+            initialValues={registerValues} // Pass lifted state as initialValues
           />
           <LoginModal
             isOpen={activeModal === "login"}
@@ -385,7 +405,7 @@ function App() {
             isOpen={showErrorModal}
             message={apiError}
             title="Submission Error"
-            onClose={() => setShowErrorModal(false)}
+            onClose={handleErrorModalClose}
           />
         </CurrentTemperatureUnitContext.Provider>
       </div>

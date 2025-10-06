@@ -1,10 +1,23 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { getErrorMessage } from "../utils/errorMessages";
 
-export function useForm(initialValues = {}, customValidate = null) {
-  const [values, setValues] = useState(initialValues);
+export function useForm(
+  initialValues = {},
+  customValidate = null,
+  externalValues = null,
+  onValuesChange
+) {
+  const [values, setValues] = useState(externalValues || initialValues); // Use external values if provided
   const [errors, setErrors] = useState({}); // Ensure errors is always an object
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [submitSuccess, setSubmitSuccess] = useState(false); // Track submission success
+
+  // Notify parent of values change
+  useEffect(() => {
+    if (onValuesChange) {
+      onValuesChange(values);
+    }
+  }, [values, onValuesChange]);
 
   const defaultValidate = (v, setErrs, setDisabled) => {
     const errs = {};
@@ -55,15 +68,26 @@ export function useForm(initialValues = {}, customValidate = null) {
   };
 
   const resetForm = useCallback(
-    (preserveValues = {}) => {
-      setValues((prev) => ({
-        ...initialValues,
-        ...preserveValues, // Preserve specific fields if provided
-      }));
-      setErrors({});
-      setIsButtonDisabled(true);
+    (preserveValues = {}, externalValues = null) => {
+      if (submitSuccess) {
+        setValues((prev) => ({
+          ...initialValues,
+          ...preserveValues, // Preserve specific fields if provided
+        }));
+        setErrors({});
+        setIsButtonDisabled(true);
+        setSubmitSuccess(false); // Reset success flag after reset
+      } else {
+        // On failure, use externalValues if provided, then apply preserveValues
+        setValues((prev) => ({
+          ...(externalValues || prev),
+          ...preserveValues,
+        }));
+        setErrors({});
+        validate(); // Re-validate to update isButtonDisabled
+      }
     },
-    [initialValues]
+    [initialValues, submitSuccess, validate]
   );
 
   return {
@@ -73,5 +97,6 @@ export function useForm(initialValues = {}, customValidate = null) {
     validate: () => validate(values),
     resetForm,
     isButtonDisabled,
+    setSubmitSuccess, // Expose this to trigger reset on success
   };
 }

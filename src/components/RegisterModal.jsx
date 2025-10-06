@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import "../index.css";
 import { useForm } from "../hooks/useForm";
 import { useModalClose } from "../hooks/useModalClose";
-import { getErrorMessage } from "../utils/errorMessages";
 
 function RegisterModal({
   isOpen,
@@ -11,15 +10,11 @@ function RegisterModal({
   apiError: parentApiError,
   setApiError,
   onSwitchToLogin,
+  resetFormRef,
+  initialValues,
 }) {
-  const initialValues = useMemo(
-    () => ({
-      email: "",
-      password: "",
-      name: "",
-      avatar: "",
-    }),
-    []
+  const [localValues, setLocalValues] = useState(
+    initialValues || { email: "", password: "", name: "", avatar: "" }
   );
 
   const customValidate = (v, setErrs, setDisabled) => {
@@ -27,30 +22,30 @@ function RegisterModal({
     let isValid = true;
 
     if (!v.email) {
-      errs.email = getErrorMessage("required", "email");
+      errs.email = "Email is required.";
       isValid = false;
     } else if (!/^\S+@\S+\.\S+$/.test(v.email)) {
-      errs.email = getErrorMessage("invalidFormat", "email");
+      errs.email = "Invalid email format.";
       isValid = false;
     }
     if (!v.password) {
-      errs.password = getErrorMessage("required", "password");
+      errs.password = "Password is required.";
       isValid = false;
     } else if (v.password.length < 6) {
-      errs.password = getErrorMessage("minLength", "password");
+      errs.password = "Password must be at least 6 characters.";
       isValid = false;
     }
     if (!v.name) {
-      errs.name = getErrorMessage("required", "name");
+      errs.name = "Name is required.";
       isValid = false;
     }
     if (!v.avatar) {
-      errs.avatar = getErrorMessage("required", "avatar");
+      errs.avatar = "Avatar URL is required.";
       isValid = false;
     } else if (
       !/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/.test(v.avatar)
     ) {
-      errs.avatar = getErrorMessage("invalidFormat", "url");
+      errs.avatar = "Invalid URL format.";
       isValid = false;
     }
 
@@ -66,63 +61,77 @@ function RegisterModal({
     validate,
     resetForm,
     isButtonDisabled,
-  } = useForm(initialValues, customValidate);
+    setSubmitSuccess,
+  } = useForm(localValues, customValidate, null, (newValues) =>
+    setLocalValues(newValues)
+  ); // Sync values with local state
 
-  const [localApiError, setLocalApiError] = useState("");
   const modalRef = useRef(null);
   useModalClose(isOpen, modalRef, handleCloseModal);
 
-  // Preserve form values on email conflict, clear password
+  // Assign resetForm to the ref provided by App.jsx
+  useEffect(() => {
+    if (resetFormRef) {
+      resetFormRef.current = resetForm;
+      console.log(
+        "RegisterModal mounted, resetForm assigned to ref:",
+        resetFormRef.current
+      );
+    }
+  }, [resetForm, resetFormRef]);
+
+  // Use effect to handle form reset and API error state on modal open
   useEffect(() => {
     if (isOpen) {
-      if (parentApiError === getErrorMessage("apiEmailExists")) {
-        // Repopulate all fields except password
-        const preservedValues = {
-          name: values.name,
-          email: values.email,
-          avatar: values.avatar,
-        };
-        resetForm(preservedValues);
-        setLocalApiError(parentApiError); // Set email-specific error
-        if (setApiError) setApiError(""); // Clear parent error
-      } else if (parentApiError) {
-        setLocalApiError(parentApiError); // Set generic API error
-        resetForm(); // Reset form for other errors
-        if (setApiError) setApiError("");
-      } else {
-        resetForm(); // Reset form for new registration
-        setLocalApiError("");
-        if (setApiError) setApiError("");
-      }
+      console.log("Modal opened, values:", { ...values, password: "****" }); // Mask password
     }
-  }, [isOpen, parentApiError, resetForm, setApiError, values]);
+  }, [isOpen, values]); // Removed setApiError call to preserve parentApiError
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLocalApiError("");
     if (!validate()) return;
 
     try {
       await onSubmitFromApp(values);
-      resetForm(); // Clear form on success
+      setSubmitSuccess(true); // Signal success to trigger reset
+      resetForm(); // Ensure reset happens immediately on success
       handleCloseModal();
     } catch (error) {
-      console.error("Failed to register:", error);
-      const message = error.message || getErrorMessage("apiGeneric");
-      setLocalApiError(message);
-      if (setApiError) setApiError(message); // Propagate error to parent
+      // Error is already logged and handled by fetchJson, propagate to App.jsx
+      if (setApiError) setApiError(error.message); // Let App.jsx handle the error display
     }
   };
 
-  // Map API errors to specific fields
   const getApiErrorForField = (fieldName) => {
-    if (
-      localApiError === getErrorMessage("apiEmailExists") &&
-      fieldName === "email"
-    ) {
-      return localApiError;
+    if (parentApiError === "Email already exists" && fieldName === "email") {
+      return parentApiError;
     }
-    return localApiError && !Object.keys(errors).length ? localApiError : ""; // Show generic error if no validation errors
+    return "";
+  };
+
+  // Determine error message for disabled submit button
+  const getSubmitErrorMessage = () => {
+    if (!isButtonDisabled) return "";
+    const requiredFields = ["email", "password", "name", "avatar"];
+    const emptyFields = requiredFields.filter((field) => !values[field]);
+    const errorFields = Object.keys(errors);
+
+    if (emptyFields.length > 1) {
+      return "Please fill out all required fields.";
+    }
+    if (errorFields.length === 0 && emptyFields.length === 1) {
+      return `${emptyFields[0]} is causing a problem`;
+    }
+    if (errorFields.length === 1) {
+      return `${errorFields[0]} is causing a problem`;
+    }
+    if (errorFields.length > 1) {
+      const lastField = errorFields.pop();
+      return `${errorFields.join(
+        ", "
+      )}, and ${lastField} are causing a problem`;
+    }
+    return "";
   };
 
   return (
@@ -149,14 +158,12 @@ function RegisterModal({
               className="modal__input"
               name="email"
               placeholder="Email"
-              value={values.email}
+              value={values.email || ""}
               onChange={handleChange}
             />
-            {(errors?.email || getApiErrorForField("email")) && (
-              <p className="modal__error-message">
-                {errors?.email || getApiErrorForField("email")}
-              </p>
-            )}
+            <p className="modal__error-message">
+              {errors?.email || getApiErrorForField("email") || ""}
+            </p>
 
             <label htmlFor="input-register-password" className="modal__label">
               Password
@@ -167,12 +174,10 @@ function RegisterModal({
               className="modal__input"
               name="password"
               placeholder="Password"
-              value={values.password}
+              value={values.password || ""}
               onChange={handleChange}
             />
-            {errors?.password && (
-              <p className="modal__error-message">{errors.password}</p>
-            )}
+            <p className="modal__error-message">{errors?.password || ""}</p>
 
             <label htmlFor="input-register-name" className="modal__label">
               Name
@@ -183,12 +188,10 @@ function RegisterModal({
               className="modal__input"
               name="name"
               placeholder="Name"
-              value={values.name}
+              value={values.name || ""}
               onChange={handleChange}
             />
-            {errors?.name && (
-              <p className="modal__error-message">{errors.name}</p>
-            )}
+            <p className="modal__error-message">{errors?.name || ""}</p>
 
             <label htmlFor="input-register-avatar" className="modal__label">
               Avatar URL
@@ -199,20 +202,11 @@ function RegisterModal({
               className="modal__input"
               name="avatar"
               placeholder="Avatar URL"
-              value={values.avatar}
+              value={values.avatar || ""}
               onChange={handleChange}
             />
-            {errors?.avatar && (
-              <p className="modal__error-message">{errors.avatar}</p>
-            )}
+            <p className="modal__error-message">{errors?.avatar || ""}</p>
           </fieldset>
-
-          {/* Display generic API error if no specific field error exists */}
-          {localApiError &&
-            !Object.keys(errors).length &&
-            !getApiErrorForField("email") && (
-              <p className="modal__error-message">{localApiError}</p>
-            )}
           <div className="modal__button-container">
             <button
               className="modal__submit-button"
@@ -232,6 +226,14 @@ function RegisterModal({
               </button>
             </p>
           </div>
+          {isButtonDisabled && (
+            <div>
+              <p className="modal__error-message">{getSubmitErrorMessage()}</p>
+              {parentApiError && (
+                <p className="modal__error-message">{parentApiError}</p>
+              )}
+            </div>
+          )}
         </form>
       </div>
     </div>
