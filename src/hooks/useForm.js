@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { getErrorMessage } from "../utils/errorMessages";
+import { getErrorMessage } from "../utils/errorMessage";
 
 export function useForm(
   initialValues = {},

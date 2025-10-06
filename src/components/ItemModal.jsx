@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import "../index.css";
 import CurrentUserContext from "../Context/CurrentUserContext";
-import { getErrorMessage } from "../utils/errorMessages";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function ItemModal({
   card,

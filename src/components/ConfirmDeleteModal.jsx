@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import "../index.css";
 import { useModalClose } from "../hooks/useModalClose";
-import { getErrorMessage } from "../utils/errorMessages";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function ConfirmDeleteModal({
   isOpen,

@@ -1,5 +1,5 @@
 import React from "react";
-import { getErrorMessage } from "../utils/errorMessages";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function ErrorModal({
   isOpen,

@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import logo from "../images/wtwr-logo.svg";
-import avatar from "../images/user-avatar.png";
 import "../index.css";
 import ToggleSwitch from "./ToggleSwitch";
 
@@ -8,7 +7,6 @@ function Header({
   weatherData,
   handleOpenAddGarmentModal,
   apiLocationError,
-  apiWeatherError,
   handleOpenLocationModal,
   handleOpenRegisterModal,
   handleOpenLoginModal,
@@ -39,15 +37,17 @@ function Header({
           >
             {weatherData?.name || "Unknown location"}
           </button>
-          {apiLocationError && weatherData?.city === "Unknown" && (
+          {apiLocationError && weatherData?.name === "Unknown" && (
             <p className="error-message">{apiLocationError}.</p>
           )}
         </p>
       </div>
-      <div className="header__partition header__partition-right">
+
+      <div className="header__partition">
         <ToggleSwitch />
+
         {isAuthenticated ? (
-          <>
+          <div className="header__partition">
             <button
               onClick={handleOpenAddGarmentModal}
               className="header__add-clothes-button"
@@ -55,11 +55,18 @@ function Header({
               + Add clothes
             </button>
             <Link to="/profile" className="header__profile-link">
-              <p className="header__username">{currentUser?.name || "Guest"}</p>
+              <p className="header__username">{currentUser?.name || "User"}</p>
+              {currentUser?.avatar && (
+                <img
+                  src={currentUser.avatar}
+                  alt={`${currentUser.name} avatar`}
+                  className="header__avatar"
+                />
+              )}
             </Link>
-          </>
+          </div>
         ) : (
-          <>
+          <div className="header__auth-buttons">
             <button
               onClick={handleOpenRegisterModal}
               className="header__auth-button"
@@ -72,7 +79,7 @@ function Header({
             >
               Log In
             </button>
-          </>
+          </div>
         )}
       </div>
     </header>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import "../index.css";
 import { useForm } from "../hooks/useForm";
 import { useModalClose } from "../hooks/useModalClose";
-import { getErrorMessage } from "../utils/errorMessages";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function EditProfileModal({
   isOpen,

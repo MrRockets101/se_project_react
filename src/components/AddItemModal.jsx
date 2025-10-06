@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "../index.css";
 import ModalWithForm from "./ModalWithForm";
 import { useForm } from "../hooks/useForm";
-import { getErrorMessage } from "../utils/errorMessages";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function AddItemModal({
   isOpen,

@@ -11,24 +11,25 @@ function SideBar({ currentUser, handleSignOut, handleOpenEditProfileModal }) {
 
   return (
     <aside className="sidebar__block">
-      <p className="sidebar__username">{currentUser?.name || "Guest"}</p>
-      {currentUser?.avatar ? (
-        <img
-          src={currentUser.avatar}
-          alt="User Avatar"
-          className="sidebar__user-avatar"
-        />
-      ) : (
-        getPlaceholderAvatar()
-      )}
-      <div className="sidebar__row"></div>
+      <aside className="sidebar__row">
+        {currentUser?.avatar ? (
+          <img
+            src={currentUser.avatar}
+            alt="User Avatar"
+            className="sidebar__user-avatar"
+          />
+        ) : (
+          getPlaceholderAvatar()
+        )}
+        <p className="sidebar__username">{currentUser?.name || "Guest"}</p>
+      </aside>
       <button
         className="sidebar__edit-profile-button"
         onClick={handleOpenEditProfileModal}
       >
         Change profile data
       </button>
-      <button className="sidebar__sign-out-button" onClick={handleSignOut}>
+      <button className="sidebar__button-sign-out" onClick={handleSignOut}>
         Sign out
       </button>
     </aside>

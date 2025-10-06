@@ -339,7 +339,9 @@ function App() {
             handleOpenLocationModal={handleOpenLocationModal}
             handleOpenRegisterModal={handleOpenRegisterModal}
             handleOpenLoginModal={handleOpenLoginModal}
-            isLoggedIn={isLoggedIn}
+            isAuthenticated={isLoggedIn}
+            currentUser={currentUser}
+            handleSignOut={handleSignOut}
           />
           <Routes>
             <Route
