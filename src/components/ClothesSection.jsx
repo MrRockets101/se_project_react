@@ -23,7 +23,11 @@ function ClothesSection({
       )}
       <ul className="clothes-section__card-list">
         {clothingItems
-          .filter((item) => item.owner === currentUser?._id)
+          .filter((item) => {
+            const ownerId =
+              typeof item.owner === "object" ? item.owner._id : item.owner;
+            return ownerId === currentUser?._id;
+          })
           .map((item) => (
             <ItemCard
               key={item._id}
