@@ -8,6 +8,7 @@ function Main({
   handleOpenItemModal,
   weatherData,
   apiWeatherError,
+  onCardLike, // Ensure this prop is expected
 }) {
   const { currentTempUnit } = useContext(CurrentTemperatureUnitContext);
 
@@ -28,6 +29,7 @@ function Main({
             key={item._id}
             data={item}
             onCardClick={handleOpenItemModal}
+            onCardLike={onCardLike} // This should now work
           />
         ))}
       </ul>

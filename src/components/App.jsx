@@ -30,6 +30,7 @@ import CurrentUserContext from "../Context/CurrentUserContext";
 import ErrorBoundary from "./ErrorBoundary";
 import ErrorModal from "./ErrorModal";
 import RegistrationSuccessModal from "./RegistrationSuccessModal";
+import { likeItem, unlikeItem } from "../utils/api";
 
 function ProtectedRoute({ children, isLoggedIn }) {
   return isLoggedIn ? children : <Navigate to="/" />;
@@ -52,7 +53,7 @@ function App() {
     password: "",
     name: "",
     avatar: "",
-  }); // Lifted state
+  });
 
   const handleOpenLocationModal = () => setLocationModalOpen(true);
   const handleCloseLocationModal = () => setLocationModalOpen(false);
@@ -82,7 +83,10 @@ function App() {
     tempCategory === "unknown"
       ? clothingItems
       : clothingItems.filter(
-          (item) => item.weather.toLowerCase() === tempCategory.toLowerCase()
+          (item) =>
+            item.weather &&
+            typeof item.weather === "string" &&
+            item.weather.toLowerCase() === tempCategory.toLowerCase()
         );
 
   const unitConfig = userPreferenceArray.find(
@@ -178,9 +182,9 @@ function App() {
       });
       if (loginResponse.token) {
         localStorage.setItem("jwt", loginResponse.token);
-        console.log("Token stored:", loginResponse.token); // Debug
+        console.log("Token stored:", loginResponse.token);
         const userData = await getCurrentUser();
-        console.log("getCurrentUser response:", userData); // Debug
+        console.log("getCurrentUser response:", userData);
         setCurrentUser(userData);
         setIsLoggedIn(true);
         setShowSuccessModal(true);
@@ -201,7 +205,7 @@ function App() {
       const response = await login(values);
       if (response && response.token) {
         localStorage.setItem("jwt", response.token);
-        console.log("Token set:", response.token); // Debug log
+        console.log("Token set:", response.token);
         const user = await getCurrentUser();
         if (user) {
           setCurrentUser(user);
@@ -259,6 +263,57 @@ function App() {
     }
   };
 
+  const handleCardLike = ({ _id, likes }) => {
+    if (!isLoggedIn) {
+      setActiveModal("login");
+      return;
+    }
+
+    const isLiked = likes?.some((id) => id === currentUser?._id) ?? false;
+    console.log(
+      "handleCardLike - isLiked:",
+      isLiked,
+      "item _id:",
+      _id,
+      "currentUser:",
+      currentUser
+    );
+
+    const apiCall = isLiked ? unlikeItem : likeItem;
+
+    apiCall(_id)
+      .then((response) => {
+        console.log("API response:", response);
+        // Ensure likes is updated from the response, with fallback to manual update
+        const updatedLikes =
+          response.likes ||
+          (isLiked
+            ? likes.filter((id) => id !== currentUser._id)
+            : [...likes, currentUser._id]);
+        const updatedItem = {
+          ...response,
+          likes: updatedLikes,
+        };
+        setClothingItems((prev) =>
+          prev.map((item) =>
+            item._id === _id ? { ...item, ...updatedItem } : item
+          )
+        );
+        console.log(
+          "Updated clothingItems state:",
+          clothingItems.map((item) =>
+            item._id === _id ? { ...item, likes: updatedLikes } : item
+          )
+        );
+      })
+      .catch((err) => {
+        console.error("Like/Unlike error:", err);
+        setApiError(err.message);
+        setShowErrorModal(true);
+        setErrorTriggerModal("like");
+      });
+  };
+
   const checkToken = useCallback(async () => {
     const token = localStorage.getItem("jwt");
     if (token) {
@@ -303,7 +358,6 @@ function App() {
 
   const handleErrorModalClose = () => {
     setShowErrorModal(false);
-    // avoid loop by Clearing apiError, only if unrelated to register
     if (errorTriggerModal !== "register") {
       setApiError("");
     }
@@ -314,9 +368,9 @@ function App() {
         "registerValues:",
         { ...registerValues, password: "****" }
       );
-      resetFormRef.current({ password: "" }, registerValues); // registerValues as externalValues
+      resetFormRef.current({ password: "" }, registerValues);
       if (activeModal !== "register") {
-        setActiveModal("register"); // Reopen RegisterModal if closed
+        setActiveModal("register");
       }
     }
   };
@@ -354,6 +408,7 @@ function App() {
                   handleOpenItemModal={handleOpenItemModal}
                   handleCloseModal={handleCloseModal}
                   apiWeatherError={apiWeatherError}
+                  onCardLike={handleCardLike}
                 />
               }
             />
@@ -368,6 +423,7 @@ function App() {
                     currentUser={currentUser}
                     handleSignOut={handleSignOut}
                     handleOpenEditProfileModal={handleOpenEditProfileModal}
+                    onCardLike={handleCardLike}
                   />
                 </ProtectedRoute>
               }

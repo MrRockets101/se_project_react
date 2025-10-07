@@ -13,9 +13,7 @@
   font-style: bold;
   font-size: 16px;
   line-height: 20px;
-  position: absolute;
   margin: 0;
-  top: 15px;
   background-color: #fff;
   color: #00000099;
   padding: 2px 12px;
@@ -24,4 +22,52 @@
 .card__image {
   width: 100%;
   object-fit: cover;
+}
+
+.card__like-button {
+  background-image: url("../images/unliked.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  margin-left: 10px;
+  background-color: transparent;
+}
+
+.card__like-button_active {
+  background-image: url("../images/liked.png");
+}
+
+.card__like-button:hover {
+  animation: heartbeat 1.2s infinite;
+  opacity: 0.3;
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1); /* Normal size */
+  }
+  20% {
+    transform: scale(1.2); /* Grow to 1.2x for the beat */
+  }
+  40% {
+    transform: scale(1); /* Return to normal */
+  }
+  60% {
+    transform: scale(1.1); /* Slight second beat */
+  }
+  100% {
+    transform: scale(1); /* Back to normal */
+  }
+}
+
+.card__header {
+  position: absolute;
+  top: 15px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
 }
