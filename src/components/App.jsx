@@ -189,14 +189,8 @@ function App() {
       const response = await login(values);
       if (response.data?.token) {
         localStorage.setItem("jwt", response.data.token);
-        const user = await getCurrentUser();
-        if (user.data) {
-          setCurrentUser(user.data);
-          setIsLoggedIn(true);
-          handleCloseModal();
-        } else {
-          throw new Error("User data not received after login");
-        }
+        await checkToken();
+        handleCloseModal();
       } else {
         throw new Error("Login failed: No token received");
       }
@@ -462,7 +456,6 @@ function App() {
             handleSubmit={handleEditProfile}
             apiError={apiError}
             setApiError={setApiError}
-            currentUser={currentUser}
           />
           <ConfirmDeleteModal
             isOpen={activeModal === "confirm-delete"}
