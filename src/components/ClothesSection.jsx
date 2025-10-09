@@ -1,13 +1,17 @@
+import { useContext } from "react";
 import "../index.css";
 import ItemCard from "./ItemCard";
+import CurrentUserContext from "../Context/CurrentUserContext";
 
 function ClothesSection({
   clothingItems,
   isProfile,
   handleOpenItemModal,
   handleOpenAddGarmentModal,
-  currentUser,
+  onCardLike,
 }) {
+  const currentUser = useContext(CurrentUserContext);
+
   return (
     <section className="clothes-section">
       {isProfile && (
@@ -32,6 +36,7 @@ function ClothesSection({
               data={item}
               onCardClick={handleOpenItemModal}
               isProfile={isProfile}
+              onCardLike={onCardLike}
             />
           ))}
       </ul>

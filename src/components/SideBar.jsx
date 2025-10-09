@@ -1,7 +1,11 @@
+import { useContext } from "react";
 import avatar from "../images/user-avatar.png";
 import "../index.css";
+import CurrentUserContext from "../Context/CurrentUserContext";
 
-function SideBar({ currentUser, handleSignOut, handleOpenEditProfileModal }) {
+function SideBar({ handleSignOut, handleOpenEditProfileModal }) {
+  const currentUser = useContext(CurrentUserContext);
+
   // Placeholder avatar with first letter if no avatar
   const getPlaceholderAvatar = () => {
     if (!currentUser?.name) return avatar;

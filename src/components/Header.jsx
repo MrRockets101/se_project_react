@@ -1,7 +1,9 @@
+import { useContext } from "react";
 import { Link } from "react-router-dom";
 import logo from "../images/wtwr-logo.svg";
 import "../index.css";
 import ToggleSwitch from "./ToggleSwitch";
+import CurrentUserContext from "../Context/CurrentUserContext";
 
 function Header({
   weatherData,
@@ -11,8 +13,9 @@ function Header({
   handleOpenRegisterModal,
   handleOpenLoginModal,
   isAuthenticated,
-  currentUser,
+  handleSignOut,
 }) {
+  const currentUser = useContext(CurrentUserContext);
   const now = new Date();
   const date = now.toLocaleDateString("en-US", {
     month: "long",
@@ -45,7 +48,6 @@ function Header({
 
       <div className="header__partition">
         <ToggleSwitch />
-
         {isAuthenticated ? (
           <div className="header__partition">
             <button

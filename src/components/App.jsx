@@ -7,8 +7,10 @@ import {
   login,
   getCurrentUser,
   updateCurrentUser,
-  updateItem,
+  likeItem,
+  unlikeItem,
 } from "../utils/api";
+import { BASE_URL } from "../utils/constants"; // Add this import
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Profile from "./Profile";
 import Header from "./Header";
@@ -27,34 +29,27 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { useWeatherLocation } from "../hooks/useWeatherLocation";
 import LocationModal from "./LocationModal";
 import CurrentUserContext from "../Context/CurrentUserContext";
-import ErrorBoundary from "./ErrorBoundary";
 import ErrorModal from "./ErrorModal";
 import RegistrationSuccessModal from "./RegistrationSuccessModal";
-import { likeItem, unlikeItem } from "../utils/api";
 
 function ProtectedRoute({ children, isLoggedIn }) {
   return isLoggedIn ? children : <Navigate to="/" />;
 }
 
 function App() {
-  const [clothingItems, setClothingItems] = useState([]);
   const [activeModal, setActiveModal] = useState("");
   const [selectedCard, setSelectedCard] = useState({});
-  const [locationModalOpen, setLocationModalOpen] = useState(false);
+
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [errorType, setErrorType] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorTriggerModal, setErrorTriggerModal] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const resetFormRef = useRef(null);
-  const [registerValues, setRegisterValues] = useState({
-    email: "",
-    password: "",
-    name: "",
-    avatar: "",
-  });
-
+  // location logic
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
   const handleOpenLocationModal = () => setLocationModalOpen(true);
   const handleCloseLocationModal = () => setLocationModalOpen(false);
   const handleUpdateLocation = async ({ latitude, longitude }) => {
@@ -62,7 +57,9 @@ function App() {
       await updateLocation({ latitude, longitude });
       setLocationModalOpen(false);
     } catch (error) {
+      console.error("Update location error:", error);
       setApiError(error.message);
+      setErrorType(error.type || "api");
       setShowErrorModal(true);
       setErrorTriggerModal("location");
     }
@@ -78,7 +75,7 @@ function App() {
     temp !== null
       ? getTempCategory(temp, currentTempUnit, userPreferenceArray)
       : "unknown";
-
+  const [clothingItems, setClothingItems] = useState([]);
   const filteredClothingItems =
     tempCategory === "unknown"
       ? clothingItems
@@ -126,7 +123,9 @@ function App() {
       setItemToDelete(null);
       handleCloseModal();
     } catch (error) {
+      console.error("Delete item error:", error);
       setApiError(error.message);
+      setErrorType(error.type || "api");
       setShowErrorModal(true);
       setErrorTriggerModal("confirm-delete");
     }
@@ -172,29 +171,14 @@ function App() {
 
   const handleRegister = async (values) => {
     try {
-      setRegisterValues(values);
-      const user = await register(values);
-      setCurrentUser(user);
-
-      const loginResponse = await login({
-        email: values.email,
-        password: values.password,
-      });
-      if (loginResponse.token) {
-        localStorage.setItem("jwt", loginResponse.token);
-        console.log("Token stored:", loginResponse.token);
-        const userData = await getCurrentUser();
-        console.log("getCurrentUser response:", userData);
-        setCurrentUser(userData);
-        setIsLoggedIn(true);
-        setShowSuccessModal(true);
-        handleCloseModal();
-      } else {
-        throw new Error("Login failed after registration");
-      }
+      await register(values);
+      await handleLogin({ email: values.email, password: values.password });
+      setShowSuccessModal(true);
+      handleCloseModal();
     } catch (error) {
       console.error("Register error:", error);
       setApiError(error.message);
+      setErrorType(error.type || "api");
       setShowErrorModal(true);
       setErrorTriggerModal("register");
     }
@@ -203,12 +187,11 @@ function App() {
   const handleLogin = async (values) => {
     try {
       const response = await login(values);
-      if (response && response.token) {
-        localStorage.setItem("jwt", response.token);
-        console.log("Token set:", response.token);
+      if (response.data?.token) {
+        localStorage.setItem("jwt", response.data.token);
         const user = await getCurrentUser();
-        if (user) {
-          setCurrentUser(user);
+        if (user.data) {
+          setCurrentUser(user.data);
           setIsLoggedIn(true);
           handleCloseModal();
         } else {
@@ -220,6 +203,7 @@ function App() {
     } catch (error) {
       console.error("Login error:", error);
       setApiError(error.message);
+      setErrorType(error.type || "api");
       setShowErrorModal(true);
       setErrorTriggerModal("login");
     }
@@ -234,10 +218,12 @@ function App() {
   const handleEditProfile = async (values) => {
     try {
       const updatedUser = await updateCurrentUser(values);
-      setCurrentUser(updatedUser);
+      setCurrentUser(updatedUser.data);
       handleCloseModal();
     } catch (error) {
+      console.error("Edit profile error:", error);
       setApiError(error.message);
+      setErrorType(error.type || "api");
       setShowErrorModal(true);
       setErrorTriggerModal("edit-profile");
     }
@@ -254,64 +240,39 @@ function App() {
         weather: values.weather.toLowerCase(),
       };
       const savedItem = await addItem(newItem);
-      setClothingItems((prev) => [savedItem, ...prev]);
+      setClothingItems((prev) => [savedItem.data, ...prev]);
       handleCloseModal();
     } catch (error) {
+      console.error("Add item error:", error);
       setApiError(error.message);
+      setErrorType(error.type || "api");
       setShowErrorModal(true);
       setErrorTriggerModal("item-garment-modal");
     }
   };
 
-  const handleCardLike = ({ _id, likes }) => {
+  const handleCardLike = async ({ _id, likes }) => {
     if (!isLoggedIn) {
       setActiveModal("login");
       return;
     }
 
     const isLiked = likes?.some((id) => id === currentUser?._id) ?? false;
-    console.log(
-      "handleCardLike - isLiked:",
-      isLiked,
-      "item _id:",
-      _id,
-      "currentUser:",
-      currentUser
-    );
-
     const apiCall = isLiked ? unlikeItem : likeItem;
 
-    apiCall(_id)
-      .then((response) => {
-        console.log("API response:", response);
-        // Ensure likes is updated from the response, with fallback to manual update
-        const updatedLikes =
-          response.likes ||
-          (isLiked
-            ? likes.filter((id) => id !== currentUser._id)
-            : [...likes, currentUser._id]);
-        const updatedItem = {
-          ...response,
-          likes: updatedLikes,
-        };
-        setClothingItems((prev) =>
-          prev.map((item) =>
-            item._id === _id ? { ...item, ...updatedItem } : item
-          )
-        );
-        console.log(
-          "Updated clothingItems state:",
-          clothingItems.map((item) =>
-            item._id === _id ? { ...item, likes: updatedLikes } : item
-          )
-        );
-      })
-      .catch((err) => {
-        console.error("Like/Unlike error:", err);
-        setApiError(err.message);
-        setShowErrorModal(true);
-        setErrorTriggerModal("like");
-      });
+    try {
+      const response = await apiCall(_id);
+      const updatedItem = response.data;
+      setClothingItems((prev) =>
+        prev.map((item) => (item._id === _id ? updatedItem : item))
+      );
+    } catch (err) {
+      console.error("Like/Unlike error:", err);
+      setApiError(err.message);
+      setErrorType(err.type || "api");
+      setShowErrorModal(true);
+      setErrorTriggerModal("like");
+    }
   };
 
   const checkToken = useCallback(async () => {
@@ -319,7 +280,8 @@ function App() {
     if (token) {
       try {
         const user = await getCurrentUser();
-        setCurrentUser(user);
+        console.log("Current user fetched:", user.data);
+        setCurrentUser(user.data);
         setIsLoggedIn(true);
       } catch (error) {
         console.error("Token validation failed:", error);
@@ -340,35 +302,67 @@ function App() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        console.log("Fetching clothing items from:", `${BASE_URL}/items`);
         const items = await getItems();
-        console.log("Fetched items response:", items);
+        console.log("Items response:", items);
         if (Array.isArray(items)) {
           setClothingItems(items);
+          console.log("Clothing items set:", items);
         } else {
           console.warn("Items response is not an array:", items);
           setClothingItems([]);
         }
       } catch (error) {
+        console.error(
+          "Fetch items error:",
+          error,
+          "Message:",
+          error.message,
+          "Type:",
+          error.type,
+          "Stack:",
+          error.stack
+        );
         setApiError(error.message);
+        setErrorType(error.type || "api");
+        setErrorTriggerModal("fetch-items");
+        console.log(
+          "ErrorModal triggered with:",
+          error.message,
+          error.type,
+          "fetch-items"
+        );
         setShowErrorModal(true);
       }
     };
     fetchItems();
   }, []);
 
+  // Debug weather and filtering
+  useEffect(() => {
+    console.log("weatherData:", weatherData);
+    console.log("temp:", temp);
+    console.log("tempCategory:", tempCategory);
+    console.log("clothingItems:", clothingItems);
+    console.log("filteredClothingItems:", filteredClothingItems);
+    console.log("currentUser:", currentUser);
+  }, [
+    weatherData,
+    temp,
+    tempCategory,
+    clothingItems,
+    filteredClothingItems,
+    currentUser,
+  ]);
+
   const handleErrorModalClose = () => {
     setShowErrorModal(false);
     if (errorTriggerModal !== "register") {
       setApiError("");
+      setErrorType("");
     }
     if (errorTriggerModal === "register" && resetFormRef.current) {
-      console.log(
-        "Triggering repopulation in RegisterModal, activeModal:",
-        activeModal,
-        "registerValues:",
-        { ...registerValues, password: "****" }
-      );
-      resetFormRef.current({ password: "" }, registerValues);
+      resetFormRef.current({ password: "" });
       if (activeModal !== "register") {
         setActiveModal("register");
       }
@@ -388,13 +382,11 @@ function App() {
           <Header
             weatherData={weatherData}
             handleOpenAddGarmentModal={handleOpenAddGarmentModal}
-            handleCloseModal={handleCloseModal}
             apiLocationError={apiLocationError}
             handleOpenLocationModal={handleOpenLocationModal}
             handleOpenRegisterModal={handleOpenRegisterModal}
             handleOpenLoginModal={handleOpenLoginModal}
             isAuthenticated={isLoggedIn}
-            currentUser={currentUser}
             handleSignOut={handleSignOut}
           />
           <Routes>
@@ -406,7 +398,6 @@ function App() {
                   clothingItems={filteredClothingItems}
                   tempCategory={tempCategory}
                   handleOpenItemModal={handleOpenItemModal}
-                  handleCloseModal={handleCloseModal}
                   apiWeatherError={apiWeatherError}
                   onCardLike={handleCardLike}
                 />
@@ -420,7 +411,6 @@ function App() {
                     clothingItems={clothingItems}
                     handleOpenItemModal={handleOpenItemModal}
                     handleOpenAddGarmentModal={handleOpenAddGarmentModal}
-                    currentUser={currentUser}
                     handleSignOut={handleSignOut}
                     handleOpenEditProfileModal={handleOpenEditProfileModal}
                     onCardLike={handleCardLike}
@@ -455,9 +445,8 @@ function App() {
             handleSubmit={handleRegister}
             apiError={apiError}
             setApiError={setApiError}
-            onSwitchToLogin={() => setActiveModal("login")}
+            onSwitchToLogin={handleOpenLoginModal}
             resetFormRef={resetFormRef}
-            initialValues={registerValues}
           />
           <LoginModal
             isOpen={activeModal === "login"}
@@ -465,7 +454,7 @@ function App() {
             handleSubmit={handleLogin}
             apiError={apiError}
             setApiError={setApiError}
-            onSwitchToRegister={() => setActiveModal("register")}
+            onSwitchToRegister={handleOpenRegisterModal}
           />
           <EditProfileModal
             isOpen={activeModal === "edit-profile"}
@@ -482,24 +471,22 @@ function App() {
             apiError={apiError}
             setApiError={setApiError}
           />
-          {locationModalOpen && (
-            <LocationModal
-              onClose={handleCloseLocationModal}
-              onUpdateLocation={handleUpdateLocation}
-              apiError={apiError}
-              setApiError={setApiError}
-            />
-          )}
+          <LocationModal
+            isOpen={locationModalOpen}
+            onClose={handleCloseLocationModal}
+            onUpdateLocation={handleUpdateLocation}
+          />
           <ErrorModal
             isOpen={showErrorModal}
             message={apiError}
-            title="Submission Error"
+            errorType={errorType}
             onClose={handleErrorModalClose}
+            errorTriggerModal={errorTriggerModal}
           />
           <RegistrationSuccessModal
             isOpen={showSuccessModal}
-            message="Registration successful! You are now logged in."
-            title="Success"
+            title="Registration Successful"
+            message="You have successfully registered!"
             onClose={handleSuccessModalClose}
           />
         </CurrentTemperatureUnitContext.Provider>

@@ -6,14 +6,13 @@ function Profile({
   clothingItems,
   handleOpenItemModal,
   handleOpenAddGarmentModal,
-  currentUser,
   handleSignOut,
   handleOpenEditProfileModal,
+  onCardLike,
 }) {
   return (
     <div className="profile">
       <SideBar
-        currentUser={currentUser}
         handleSignOut={handleSignOut}
         handleOpenEditProfileModal={handleOpenEditProfileModal}
       />
@@ -22,7 +21,7 @@ function Profile({
         isProfile={true}
         handleOpenItemModal={handleOpenItemModal}
         handleOpenAddGarmentModal={handleOpenAddGarmentModal}
-        currentUser={currentUser}
+        onCardLike={onCardLike}
       />
     </div>
   );

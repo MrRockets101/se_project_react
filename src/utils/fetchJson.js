@@ -7,6 +7,11 @@ export async function fetchJson(
 ) {
   try {
     const token = localStorage.getItem("jwt");
+    console.log(
+      `Fetch request to: ${url}, Method: ${options.method}, Token: ${
+        token || "none"
+      }, Headers: ${JSON.stringify(options.headers || {})}`
+    );
 
     const response = await fetch(url, {
       ...options,
@@ -16,29 +21,63 @@ export async function fetchJson(
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
-    console.log("Fetch request with token:", token);
+
+    console.log(
+      `Fetch response for ${url}: Status ${
+        response.status
+      }, Headers: ${JSON.stringify(
+        Object.fromEntries(response.headers.entries())
+      )}`
+    );
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = {};
+        console.warn(`Failed to parse error response for ${url}:`, e);
+      }
       const backendMessage = errorData.message || errorMessage;
       const error = new Error(backendMessage);
       error.status = response.status;
-      // Use errorMappings for consistent messages
-      error.message =
-        errorMappings[response.status] ||
-        backendMessage ||
-        errorMappings.default;
+
+      // Handle celebrate validation errors
+      if (
+        errorData.details &&
+        Array.isArray(errorData.details) &&
+        errorData.details[0]?.message
+      ) {
+        error.message = errorData.details[0].message; // e.g., "The \"name\" field must be filled in"
+        error.type = "validation";
+      } else {
+        error.message =
+          errorMappings[response.status] ||
+          backendMessage ||
+          errorMappings.default;
+        error.type = response.status ? "api" : "generic";
+      }
+      console.error(
+        `API Error - URL: ${url}, Status: ${error.status || "N/A"}, Type: ${
+          error.type
+        }, Message: ${error.message}, Response: ${JSON.stringify(errorData)}`
+      );
       throw error;
     }
 
-    return await response.json();
+    const result = await response.json();
+    console.log(`Fetch success for ${url}:`, result);
+    return result;
   } catch (err) {
-    if (err.status) {
-      console.error(
-        `API Error - Status: ${err.status}, Message: ${err.message}`
+    console.error(`Fetch error for ${url}:`, err, `Stack: ${err.stack}`);
+    if (err.name === "TypeError" && err.message.includes("Failed to fetch")) {
+      const error = new Error(
+        errorMappings.network ||
+          "Unable to connect to the server. Please check your internet connection or try again later."
       );
-      throw new Error(err.message);
+      error.type = "network";
+      throw error;
     }
-    throw new Error(err.message || errorMessage);
+    throw err;
   }
 }

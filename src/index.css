@@ -13,28 +13,3 @@
 @import url("./blocks/Profile.css");
 @import url("./blocks/ClothsSection.css");
 @import url("./blocks/SideBar.css");
-
-.error-boundary {
-  padding: 20px;
-  text-align: center;
-  color: #ff0000;
-  font-family: Arial, sans-serif;
-}
-
-.error-boundary h1 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.error-boundary p {
-  font-size: 16px;
-  margin-bottom: 15px;
-}
-
-.error-boundary details {
-  font-size: 14px;
-  color: #333;
-  background-color: #f9f9f9;
-  padding: 10px;
-  border-radius: 4px;
-}

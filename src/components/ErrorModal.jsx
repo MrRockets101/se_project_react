@@ -1,11 +1,13 @@
 import React from "react";
-import { getErrorMessage } from "../utils/errorMessage";
+import { getErrorMessage, getContextErrorMessage } from "../utils/errorMessage";
 
 function ErrorModal({
   isOpen,
   message,
+  errorType,
   title = getErrorMessage("apiGeneric", null, "Error"),
   onClose,
+  errorTriggerModal,
   className = "",
 }) {
   if (!isOpen) return null;
@@ -22,7 +24,9 @@ function ErrorModal({
           onClick={onClose}
         ></button>
         <h2 className="modal__title">{title}</h2>
-        <p className="modal__error-message">{message}</p>
+        <p className="modal__error-message">
+          {getContextErrorMessage(errorType, message, errorTriggerModal)}
+        </p>
         <button className="modal__submit-button" onClick={onClose}>
           Close
         </button>

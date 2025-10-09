@@ -64,9 +64,16 @@ export async function getItems() {
       {},
       "Error fetching items"
     );
+    console.log("getItems raw response:", result);
 
-    return Array.isArray(result) ? result : [];
+    // Handle backend response structure
+    const items = result.data && Array.isArray(result.data) ? result.data : [];
+    if (!Array.isArray(result.data)) {
+      console.warn("getItems: Response.data is not an array:", result.data);
+    }
+    return items;
   } catch (error) {
+    console.error("getItems error:", error, "Type:", error.type);
     throw error;
   }
 }

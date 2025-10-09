@@ -9,8 +9,12 @@ export const errorMessages = {
   },
   api: {
     emailExists: "Email already exists.",
-    generic: "Failed to register.",
+    generic: "An error occurred while processing your request.",
   },
+  validation: (message) =>
+    message || "Invalid input. Please check the provided details.",
+  network:
+    "Unable to connect to the server. Please check your internet connection or try again.",
 };
 
 // Helper function to capitalize field names
@@ -24,7 +28,13 @@ export const getErrorMessage = (
   fieldName = null,
   customMessage = null
 ) => {
-  if (customMessage) return customMessage; // Allow overriding with API message
+  if (customMessage) {
+    // Handle celebrate validation messages directly
+    if (type === "validation") {
+      return errorMessages.validation(customMessage);
+    }
+    return customMessage;
+  }
   switch (type) {
     case "required":
       return errorMessages.required(fieldName);
@@ -36,7 +46,81 @@ export const getErrorMessage = (
       return errorMessages.api.emailExists;
     case "apiGeneric":
       return errorMessages.api.generic;
+    case "network":
+      return errorMessages.network;
+    case "validation":
+      return errorMessages.validation(fieldName);
     default:
-      return "An error occurred.";
+      return "An unexpected error occurred.";
+  }
+};
+
+// New function to handle context-specific error messages
+export const getContextErrorMessage = (
+  errorType,
+  message,
+  errorTriggerModal
+) => {
+  // Handle celebrate validation errors
+  if (errorType === "validation") {
+    return getErrorMessage("validation", null, message);
+  }
+
+  switch (errorTriggerModal) {
+    case "fetch-items":
+      return getErrorMessage(
+        errorType === "network" ? "network" : "apiGeneric",
+        null,
+        message ===
+          "Unable to connect to the server. Please check your internet connection or try again later."
+          ? message
+          : "Failed to load clothing items. Please try again later."
+      );
+    case "register":
+      return message.includes("email already exists")
+        ? getErrorMessage("apiEmailExists")
+        : getErrorMessage(
+            "apiGeneric",
+            null,
+            "Registration failed. Please check your details."
+          );
+    case "login":
+      return getErrorMessage(
+        "apiGeneric",
+        null,
+        "Login failed. Please check your email and password."
+      );
+    case "item-garment-modal":
+      return getErrorMessage(
+        "apiGeneric",
+        null,
+        "Failed to add item. Please check the item details."
+      );
+    case "confirm-delete":
+      return getErrorMessage(
+        "apiGeneric",
+        null,
+        "Failed to delete item. Please try again."
+      );
+    case "like":
+      return getErrorMessage(
+        "apiGeneric",
+        null,
+        "Failed to update like status. Please try again."
+      );
+    case "edit-profile":
+      return getErrorMessage(
+        "apiGeneric",
+        null,
+        "Failed to update profile. Please check your details."
+      );
+    case "location":
+      return getErrorMessage(
+        "apiGeneric",
+        null,
+        "Failed to update location. Please try again."
+      );
+    default:
+      return getErrorMessage(errorType || "apiGeneric", null, message);
   }
 };
