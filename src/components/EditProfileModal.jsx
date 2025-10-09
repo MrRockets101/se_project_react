@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useContext, useEffect, useMemo, useState, useRef } from "react";
 import "../index.css";
 import { useForm } from "../hooks/useForm";
 import { useModalClose } from "../hooks/useModalClose";
 import { getErrorMessage } from "../utils/errorMessage";
+
+import CurrentUserContext from "../Context/CurrentUserContext";
 
 function EditProfileModal({
   isOpen,
@@ -10,8 +12,8 @@ function EditProfileModal({
   handleCloseModal,
   apiError: parentApiError,
   setApiError,
-  currentUser,
 }) {
+  const currentUser = useContext(CurrentUserContext);
   const initialValues = useMemo(
     () => ({
       name: currentUser?.name || "",
@@ -144,7 +146,6 @@ function EditProfileModal({
               className="modal__submit-button"
               type="submit"
               disabled={isButtonDisabled}
-              style={{ backgroundColor: "#007bff", color: "#fff" }}
             >
               Save changes
             </button>
