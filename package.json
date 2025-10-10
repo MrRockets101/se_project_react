@@ -8,9 +8,10 @@
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "json-server": "json-server --watch db.json --id _id --port 3001"
+    "json-server": "json-server --watch db.json --id _id --port 3001",
+    "deploy": "npm run build && scp -r ./dist/* alexbrosovich@wtwrmrrockets101.jumpingcrab.com:/home/alexbrosovich/frontend"
   },
-  "homepage": "https://wtwrmrrockets101.crabdance.com",
+  "homepage": "https://wtwrmrrockets101.jumpingcrab.com",
   "dependencies": {
     "express": "^5.1.0",
     "json-server": "^0.17.4",
@@ -27,6 +28,5 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
     "vite": "^5.3.1"
-  },
-  "deploy": "npm run build && scp -r ./dist/* alexbrosovich@wtwrmrrockets101.crabdance.com:/home/alexbrosovich/frontend"
+  }
 }
