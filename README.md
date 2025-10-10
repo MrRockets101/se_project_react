@@ -17,3 +17,10 @@ api, react, hooks
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
 - Back end [Github Link](https://github.com/MrRockets101/se_project_express.git)
+
+## Project Pitch Videos
+
+Check out these videos, where I describe my project
+and some challenges I faced while building it:
+
+- [this video](https://drive.google.com/file/d/1P9EGCjxymTVQkz269mkLo4Q20jok90Vu/view?usp=drive_link)

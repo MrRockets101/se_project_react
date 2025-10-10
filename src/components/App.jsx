@@ -10,7 +10,7 @@ import {
   likeItem,
   unlikeItem,
 } from "../utils/api";
-import { BASE_URL } from "../utils/constants"; // Add this import
+import { BASE_URL } from "../utils/constants";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Profile from "./Profile";
 import Header from "./Header";
