@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { parseWeatherData } from "../utils/weatherApi"; // Import the parsing function
-
+import { BASE_URL } from "../utils/constants";
 const DEFAULT_COORDS = { latitude: 40.7128, longitude: -74.006 }; // NYC fallback
-const BACKEND_WEATHER_URL = "http://localhost:3001/api/weather"; // proxy route on backend
+const BACKEND_WEATHER_URL = BASE_URL + "/api/weather"; // proxy route on backend
 
 async function getClientIpGeolocation() {
   const response = await fetch(`https://ipinfo.io/json?token=f4e039cced363b`);
