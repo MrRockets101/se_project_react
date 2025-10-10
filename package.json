@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "json-server": "json-server --watch db.json --id _id --port 3001"
   },
+  "homepage": "https://wtwrmrrockets101.crabdance.com",
   "dependencies": {
     "express": "^5.1.0",
     "json-server": "^0.17.4",

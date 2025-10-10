@@ -6,6 +6,9 @@ function getWeatherApiUrl(latitude, longitude) {
 
 const IpAPIKey = "f4e039cced363b";
 
-const BASE_URL = "http://localhost:3001";
+const BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://api.wtwrmrrockets101.crabdance.com"
+    : "http://localhost:3001";
 
 export { APIKey, getWeatherApiUrl, IpAPIKey, BASE_URL };
